@@ -1,0 +1,1720 @@
+Claro, he analizado los archivos y he preparado un repositorio de GitHub completo, mejorado y listo para usar. Incluye una guía mucho más detallada, scripts automatizados y configuraciones avanzadas para una experiencia óptima en Windows 11.
+
+### Evaluación de los Archivos Originales
+
+Los cuatro documentos proporcionados forman una base sólida para una guía de instalación de OpenManus con Ollama en Windows 11. Los puntos clave que identificaste son correctos:
+
+*   **Objetivo:** Ejecutar un agente de IA autónomo (OpenManus) de forma local, gratuita y nativa en Windows 11 utilizando Ollama.
+*   **Requisitos:** Python 3.11/3.12, Git, Ollama y suficiente RAM (8-16 GB).
+*   **Puntos Críticos:**
+    *   **Modelos LLM:** Es crucial evitar modelos que no soporten `function calling` (llamadas a herramientas), como `qwen2.5-coder`, ya que OpenManus depende de esta funcionalidad para operar. Se recomiendan modelos como `qwen2.5:7b` o `llama3:8b`。
+    *   **Configuración:** El archivo `config.toml` debe apuntar al endpoint correcto de Ollama: `http://localhost:11434/v1`. Es importante notar que algunas guías antiguas usan `/api`, pero el estándar para la compatibilidad con OpenAI es `/v1`。
+    *   **Ejecución:** OpenManus soporta múltiples modos: CLI (`main.py`), interfaz Web (`web_run.py`) y MCP (`run_mcp.py`) para herramientas externas.
+
+---
+
+### Repositorio GitHub Mejorado y Listo para Usar
+
+He creado una estructura de repositorio mucho más completa, robusta y fácil de usar. Incluye scripts, configuraciones y documentación extensa para que cualquier usuario pueda ponerlo en marcha sin complicaciones.
+
+#### Estructura del Repositorio
+
+```
+openmanus-ollama-windows/
+├── .github/
+│   └── workflows/            # (Opcional) Para CI/CD si deseas ampliarlo
+├── config/
+│   ├── config.example.toml   # Configuración de ejemplo para Ollama
+│   └── config.toml           # (Ignorado) Archivo de configuración real del usuario
+├── scripts/
+│   ├── setup_windows.bat     # Script principal de instalación automática
+│   ├── run_web_ui.bat        # Script para lanzar la interfaz web
+│   └── run_cli.bat           # Script para lanzar el modo terminal
+├── .gitignore                # Archivos y carpetas a ignorar por Git
+├── LICENSE                   # Licencia MIT (o la que prefieras)
+└── README.md                 # Guía completa y detallada
+```
+
+#### 1. `README.md` (Guía Extendida)
+
+El README ahora es una guía paso a paso, pensada para usuarios de Windows con diferentes niveles de experiencia.
+
+```markdown
+# 🚀 OpenManus + Ollama en Windows 11 (Sin Docker)
+
+Guía definitiva para desplegar tu propio agente de IA autónomo, 100% local, gratuito y sin necesidad de Docker ni claves API de pago.
+
+## 📋 Tabla de Contenidos
+- [Requisitos Previos](#requisitos-previos)
+- [Instalación Rápida (Automática)](#instalación-rápida-automática)
+- [Instalación Paso a Paso (Manual)](#instalación-paso-a-paso-manual)
+- [Configuración Avanzada](#configuración-avanzada)
+- [Modos de Ejecución](#modos-de-ejecución)
+- [Solución de Problemas](#solución-de-problemas)
+- [Preguntas Frecuentes (FAQ)](#preguntas-frecuentes-faq)
+
+---
+
+## ✅ Requisitos Previos
+
+| Componente      | Mínimo                          | Recomendado                          |
+|-----------------|---------------------------------|--------------------------------------|
+| **Sistema**     | Windows 10/11 (64-bit)          | Windows 11 (64-bit)                  |
+| **RAM**         | 8 GB                            | 16 GB o más                  |
+| **Almacenamiento** | 20 GB de espacio libre | SSD con 50+ GB para múltiples modelos |
+| **Python**      | 3.10 o superior        | **3.12.x** (probado y estable) |
+| **Git**         | Cualquier versión reciente      | Última versión estable               |
+| **GPU**         | No requerida (CPU)              | NVIDIA con 6+ GB de VRAM     |
+
+> **💡 Nota:** Aunque no es obligatorio, tener una GPU NVIDIA acelerará significativamente el procesamiento de los modelos.
+
+---
+
+## ⚡ Instalación Rápida (Automática)
+
+Este es el método recomendado para la mayoría de los usuarios. Ejecuta un solo script y el sistema hará el resto.
+
+1.  **Clona este repositorio:**
+    ```cmd
+    git clone https://github.com/tu-usuario/openmanus-ollama-windows.git
+    cd openmanus-ollama-windows
+    ```
+
+2.  **Ejecuta el instalador automático:**
+    ```cmd
+    scripts\setup_windows.bat
+    ```
+    Este script:
+    *   Verifica la instalación de Python y Git.
+    *   Crea y activa un entorno virtual (`venv`).
+    *   Instala las dependencias con `uv` (mucho más rápido que `pip`).
+    *   Descarga el modelo `qwen2.5:7b` con Ollama.
+    *   Configura el archivo `config.toml` automáticamente.
+
+3.  **¡Listo!** Ya puedes ejecutar OpenManus. Ve a la sección [Modos de Ejecución](#modos-de-ejecución).
+
+---
+
+## 🛠️ Instalación Paso a Paso (Manual)
+
+Si prefieres hacerlo tú mismo o el script automático falla, sigue estos pasos.
+
+### 1. Instalar Python 3.12
+1.  Descarga el instalador desde [python.org](https://www.python.org/downloads/release/python-3120/).
+2.  Durante la instalación, **marca la opción "Add Python to PATH"** y, si aparece, haz clic en "Disable path length limit".
+3.  Verifica la instalación abriendo una terminal (`cmd`) y ejecutando:
+    ```cmd
+    python --version
+    ```
+
+### 2. Instalar Git
+1.  Descarga Git desde [git-scm.com](https://git-scm.com/download/win).
+2.  Instálalo con las opciones por defecto.
+
+### 3. Instalar Ollama
+1.  Descarga el instalador para Windows desde [ollama.com](https://ollama.com/download/windows).
+2.  Ejecuta el instalador. Ollama se ejecutará en segundo plano.
+3.  Verifica que esté funcionando:
+    ```cmd
+    ollama --version
+    ```
+4.  Descarga el modelo recomendado:
+    ```cmd
+    ollama pull qwen2.5:7b
+    ```
+    > **Alternativas:** `llama3:8b` (mejor en inglés) o `qwen2.5:3b` (más ligero).
+
+### 4. Clonar y Preparar OpenManus
+1.  Clona el repositorio oficial de OpenManus:
+    ```cmd
+    git clone https://github.com/FoundationAgents/OpenManus.git
+    cd OpenManus
+    ```
+2.  Crea y activa un entorno virtual:
+    ```cmd
+    python -m venv venv
+    venv\Scripts\activate
+    ```
+3.  Instala `uv` para una gestión de dependencias más rápida:
+    ```cmd
+    pip install uv
+    ```
+4.  Instala las dependencias del proyecto:
+    ```cmd
+    uv pip install -r requirements.txt
+    ```
+5.  (Opcional) Instala el navegador para la automatización web:
+    ```cmd
+    playwright install
+    ```
+
+### 5. Configurar OpenManus para Ollama
+1.  Crea el archivo de configuración desde el ejemplo:
+    ```cmd
+    copy config\config.example.toml config\config.toml
+    ```
+2.  Abre `config\config.toml` con un editor de texto (como Notepad++ o VS Code).
+3.  **Reemplaza todo el contenido** con lo siguiente (ajusta el modelo si usas otro):
+    ```toml
+    # Configuración para usar Ollama con un modelo local
+    [llm]
+    model = "qwen2.5:7b"          # O "llama3:8b", "qwen2.5:3b", etc.
+    base_url = "http://localhost:11434/v1"
+    api_key = "ollama"            # No se usa, pero es necesario para el formato
+    max_tokens = 4096
+    temperature = 0.0
+
+    # La configuración de visión puede ser la misma o apuntar a un modelo diferente
+    [llm.vision]
+    model = "qwen2.5:7b"
+    base_url = "http://localhost:11434/v1"
+    api_key = "ollama"
+    max_tokens = 4096
+    temperature = 0.0
+    ```
+    > **⚠️ Importante:** El endpoint debe ser `.../v1`, no `.../api` para la compatibilidad con la API de OpenAI que OpenManus espera.
+
+---
+
+## ⚙️ Configuración Avanzada
+
+*   **Cambiar de Modelo:** Si descargas otro modelo (ej. `llama3.1:8b`), solo actualiza el campo `model` en ambas secciones del `config.toml`.
+*   **Ajustar Parámetros:** Puedes modificar `max_tokens` (longitud de la respuesta) y `temperature` (creatividad, 0.0 = determinista, 1.0 = muy creativo).
+*   **Desactivar Caché de Hugging Face:** Si usas modelos locales, puedes desactivar la caché de Hugging Face para ahorrar espacio editando `config.toml` y añadiendo:
+    ```toml
+    enable_hf_cache = false
+    ```
+
+---
+
+## ▶️ Modos de Ejecución
+
+OpenManus ofrece diferentes formas de interactuar con él.
+
+### 1. Interfaz Web (Recomendado para la mayoría)
+Lanza una interfaz gráfica en tu navegador, mucho más amigable.
+```cmd
+python web_run.py
+```
+Luego, abre tu navegador y ve a la dirección que aparecerá (normalmente `http://127.0.0.1:8000`).
+
+### 2. Modo Terminal (CLI)
+Ideal para usuarios avanzados o para integrar en scripts.
+```cmd
+python main.py
+```
+Introduce tu consulta directamente en la terminal.
+
+### 3. Modo MCP (Model Context Protocol)
+Para conectar OpenManus con herramientas externas o servidores MCP.
+```cmd
+python run_mcp.py
+```
+
+---
+
+## 🐛 Solución de Problemas
+
+| Problema | Posible Solución |
+| :--- | :--- |
+| **`'python' no se reconoce`** | No añadiste Python al PATH. Reinstala Python y marca la opción "Add Python to PATH". |
+| **`'ollama' no se reconoce`** | Asegúrate de que Ollama está instalado y en ejecución. Busca el icono en la bandeja del sistema. |
+| **Error de conexión a Ollama** | Verifica que Ollama esté corriendo (`ollama serve`). Comprueba que la URL en `config.toml` es `http://localhost:11434/v1`. Revisa que el firewall de Windows no esté bloqueando el puerto 11434. |
+| **El modelo no responde o da errores** | Asegúrate de que el modelo que pusiste en `config.toml` coincide con el que descargaste con `ollama pull`. Prueba con `qwen2.5:7b` que es el más estable para OpenManus. |
+| **Error de dependencias (numpy, etc.)** | A veces hay conflictos. Prueba a instalar una versión específica: `uv pip install numpy==1.23.5` y luego vuelve a instalar `requirements.txt`. |
+| **El agente no usa las herramientas** | Asegúrate de que el modelo soporta `function calling`. Modelos como `qwen2.5-coder` pueden tener problemas. Usa `qwen2.5:7b` o `llama3:8b`. |
+
+---
+
+## ❓ Preguntas Frecuentes (FAQ)
+
+**¿Puedo usar otros modelos?**
+Sí, cualquier modelo que Ollama soporte y que tenga buen soporte de `function calling`. Modelos como `mistral`, `llama3` o `qwen2.5` funcionan bien.
+
+**¿Necesito una GPU?**
+No es estrictamente necesario, pero la experiencia será mucho más lenta sin una. Modelos de 7B parámetros pueden funcionar aceptablemente en una CPU moderna con suficiente RAM.
+
+**¿Es realmente gratuito?**
+Sí, al 100%. No necesitas ninguna clave API de pago. Todo se ejecuta en tu propia máquina.
+
+**¿Puedo instalar esto en macOS o Linux?**
+Sí, los pasos son muy similares, solo cambian los comandos para activar el entorno virtual (`source venv/bin/activate`) y la ruta de los scripts.
+
+**¿Qué hago si el script `setup_windows.bat` no funciona?**
+Puedes seguir la [Instalación Paso a Paso (Manual)](#instalación-paso-a-paso-manual). El script es solo un atajo para automatizar esos pasos.
+
+```
+
+#### 2. `config/config.example.toml`
+
+Archivo de ejemplo, ya configurado para Ollama.
+
+```toml
+# OpenManus Configuration for Ollama (Local)
+# Copy this file to config.toml and adjust as needed.
+
+[llm]
+model = "qwen2.5:7b"                # Change to your downloaded model
+base_url = "http://localhost:11434/v1" # Ollama's OpenAI-compatible endpoint
+api_key = "ollama"                  # Placeholder, not used by Ollama
+max_tokens = 4096
+temperature = 0.0
+
+[llm.vision]
+model = "qwen2.5:7b"                # Can be the same or a vision model
+base_url = "http://localhost:11434/v1"
+api_key = "ollama"
+max_tokens = 4096
+temperature = 0.0
+
+# Uncomment to disable Hugging Face cache if you only use local models
+# enable_hf_cache = false
+```
+
+#### 3. `scripts/setup_windows.bat`
+
+Script mejorado con más verificaciones y mensajes de estado.
+
+```batch
+@echo off
+setlocal enabledelayedexpansion
+title OpenManus Installer for Windows
+
+echo ===================================================
+echo   OpenManus + Ollama Installer for Windows 11
+echo ===================================================
+echo.
+
+:: --- Check for Python ---
+echo [1/6] Checking Python installation...
+python --version >nul 2>&1
+if errorlevel 1 (
+    echo [ERROR] Python is not installed or not in PATH.
+    echo Please install Python 3.12 from https://www.python.org/downloads/
+    echo Make sure to check "Add Python to PATH" during installation.
+    pause
+    exit /b 1
+)
+echo [OK] Python found.
+echo.
+
+:: --- Check for Git ---
+echo [2/6] Checking Git installation...
+git --version >nul 2>&1
+if errorlevel 1 (
+    echo [ERROR] Git is not installed or not in PATH.
+    echo Please install Git from https://git-scm.com/download/win
+    pause
+    exit /b 1
+)
+echo [OK] Git found.
+echo.
+
+:: --- Create Virtual Environment ---
+echo [3/6] Creating Python virtual environment...
+if not exist "venv" (
+    python -m venv venv
+    if errorlevel 1 (
+        echo [ERROR] Failed to create virtual environment.
+        pause
+        exit /b 1
+    )
+    echo [OK] Virtual environment created.
+) else (
+    echo [OK] Virtual environment already exists.
+)
+echo.
+
+:: --- Activate venv and Install Dependencies ---
+echo [4/6] Activating virtual environment and installing dependencies...
+call venv\Scripts\activate
+if errorlevel 1 (
+    echo [ERROR] Failed to activate virtual environment.
+    pause
+    exit /b 1
+)
+
+echo Installing uv (fast package installer)...
+pip install uv --quiet
+if errorlevel 1 (
+    echo [WARN] Failed to install uv. Falling back to pip...
+    pip install -r requirements.txt
+) else (
+    echo Installing dependencies with uv...
+    uv pip install -r requirements.txt
+)
+if errorlevel 1 (
+    echo [ERROR] Failed to install dependencies.
+    echo Try manually: pip install -r requirements.txt
+    pause
+    exit /b 1
+)
+echo [OK] Dependencies installed.
+echo.
+
+:: --- Copy Configuration File ---
+echo [5/6] Setting up configuration file...
+if not exist "config\config.toml" (
+    if exist "config\config.example.toml" (
+        copy config\config.example.toml config\config.toml >nul
+        echo [OK] Configuration file created.
+    ) else (
+        echo [WARN] Example configuration file not found.
+        echo Please create config\config.toml manually.
+    )
+) else (
+    echo [OK] Configuration file already exists.
+)
+echo.
+
+:: --- Pull Ollama Model ---
+echo [6/6] Verifying and pulling the Ollama model (qwen2.5:7b)...
+echo This may take several minutes depending on your internet speed.
+ollama pull qwen2.5:7b
+if errorlevel 1 (
+    echo [WARN] Failed to pull qwen2.5:7b.
+    echo Please run manually: ollama pull qwen2.5:7b
+    echo Or check that Ollama is installed and running.
+) else (
+    echo [OK] Model ready.
+)
+echo.
+
+:: --- Final Message ---
+echo ===================================================
+echo Setup completed successfully!
+echo.
+echo You can now run OpenManus:
+echo   - Web Interface: python web_run.py
+echo   - CLI Mode:      python main.py
+echo   - MCP Mode:      python run_mcp.py
+echo ===================================================
+pause
+```
+
+#### 4. `scripts/run_web_ui.bat` (Script de lanzamiento rápido)
+
+```batch
+@echo off
+title OpenManus Web UI
+echo Starting OpenManus Web Interface...
+call venv\Scripts\activate
+python web_run.py
+pause
+```
+
+#### 5. `scripts/run_cli.bat` (Script de lanzamiento rápido)
+
+```batch
+@echo off
+title OpenManus CLI
+echo Starting OpenManus in CLI mode...
+call venv\Scripts\activate
+python main.py
+pause
+```
+
+#### 6. `.gitignore`
+
+Ignora todos los archivos generados y específicos del entorno.
+
+```
+# Python
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.env
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# OpenManus specific
+logs/
+workspace/
+output/
+config/config.toml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+```
+
+---
+
+### ¿Cómo usar este repositorio?
+
+1.  **Clona o descarga** este repositorio.
+2.  **Ejecuta el script** `scripts\setup_windows.bat` como administrador (aunque normalmente no es necesario).
+3.  Sigue las instrucciones en pantalla. El script se encargará de todo, desde verificar las dependencias hasta descargar el modelo.
+4.  Una vez terminado, ejecuta `scripts\run_web_ui.bat` para abrir la interfaz web y empezar a usar tu agente de IA.
+
+Este repositorio soluciona los problemas comunes, automatiza el proceso tedioso y proporciona una base sólida y bien documentada para que cualquiera pueda tener su propio OpenManus funcionando en minutos.Claro, he analizado los archivos y he preparado un repositorio de GitHub completo, mejorado y listo para usar. Incluye una guía mucho más detallada, scripts automatizados y configuraciones avanzadas para una experiencia óptima en Windows 11.
+
+### Evaluación de los Archivos Originales
+
+Los cuatro documentos proporcionados forman una base sólida para una guía de instalación de OpenManus con Ollama en Windows 11. Los puntos clave que identificaste son correctos:
+
+*   **Objetivo:** Ejecutar un agente de IA autónomo (OpenManus) de forma local, gratuita y nativa en Windows 11 utilizando Ollama.
+*   **Requisitos:** Python 3.11/3.12, Git, Ollama y suficiente RAM (8-16 GB).
+*   **Puntos Críticos:**
+    *   **Modelos LLM:** Es crucial evitar modelos que no soporten `function calling` (llamadas a herramientas), como `qwen2.5-coder`, ya que OpenManus depende de esta funcionalidad para operar. Se recomiendan modelos como `qwen2.5:7b` o `llama3:8b`。
+    *   **Configuración:** El archivo `config.toml` debe apuntar al endpoint correcto de Ollama: `http://localhost:11434/v1`. Es importante notar que algunas guías antiguas usan `/api`, pero el estándar para la compatibilidad con OpenAI es `/v1`。
+    *   **Ejecución:** OpenManus soporta múltiples modos: CLI (`main.py`), interfaz Web (`web_run.py`) y MCP (`run_mcp.py`) para herramientas externas.
+
+---
+
+### Repositorio GitHub Mejorado y Listo para Usar
+
+He creado una estructura de repositorio mucho más completa, robusta y fácil de usar. Incluye scripts, configuraciones y documentación extensa para que cualquier usuario pueda ponerlo en marcha sin complicaciones.
+
+#### Estructura del Repositorio
+
+```
+openmanus-ollama-windows/
+├── .github/
+│   └── workflows/            # (Opcional) Para CI/CD si deseas ampliarlo
+├── config/
+│   ├── config.example.toml   # Configuración de ejemplo para Ollama
+│   └── config.toml           # (Ignorado) Archivo de configuración real del usuario
+├── scripts/
+│   ├── setup_windows.bat     # Script principal de instalación automática
+│   ├── run_web_ui.bat        # Script para lanzar la interfaz web
+│   └── run_cli.bat           # Script para lanzar el modo terminal
+├── .gitignore                # Archivos y carpetas a ignorar por Git
+├── LICENSE                   # Licencia MIT (o la que prefieras)
+└── README.md                 # Guía completa y detallada
+```
+
+#### 1. `README.md` (Guía Extendida)
+
+El README ahora es una guía paso a paso, pensada para usuarios de Windows con diferentes niveles de experiencia.
+
+```markdown
+# 🚀 OpenManus + Ollama en Windows 11 (Sin Docker)
+
+Guía definitiva para desplegar tu propio agente de IA autónomo, 100% local, gratuito y sin necesidad de Docker ni claves API de pago.
+
+## 📋 Tabla de Contenidos
+- [Requisitos Previos](#requisitos-previos)
+- [Instalación Rápida (Automática)](#instalación-rápida-automática)
+- [Instalación Paso a Paso (Manual)](#instalación-paso-a-paso-manual)
+- [Configuración Avanzada](#configuración-avanzada)
+- [Modos de Ejecución](#modos-de-ejecución)
+- [Solución de Problemas](#solución-de-problemas)
+- [Preguntas Frecuentes (FAQ)](#preguntas-frecuentes-faq)
+
+---
+
+## ✅ Requisitos Previos
+
+| Componente      | Mínimo                          | Recomendado                          |
+|-----------------|---------------------------------|--------------------------------------|
+| **Sistema**     | Windows 10/11 (64-bit)          | Windows 11 (64-bit)                  |
+| **RAM**         | 8 GB                            | 16 GB o más                  |
+| **Almacenamiento** | 20 GB de espacio libre | SSD con 50+ GB para múltiples modelos |
+| **Python**      | 3.10 o superior        | **3.12.x** (probado y estable) |
+| **Git**         | Cualquier versión reciente      | Última versión estable               |
+| **GPU**         | No requerida (CPU)              | NVIDIA con 6+ GB de VRAM     |
+
+> **💡 Nota:** Aunque no es obligatorio, tener una GPU NVIDIA acelerará significativamente el procesamiento de los modelos.
+
+---
+
+## ⚡ Instalación Rápida (Automática)
+
+Este es el método recomendado para la mayoría de los usuarios. Ejecuta un solo script y el sistema hará el resto.
+
+1.  **Clona este repositorio:**
+    ```cmd
+    git clone https://github.com/tu-usuario/openmanus-ollama-windows.git
+    cd openmanus-ollama-windows
+    ```
+
+2.  **Ejecuta el instalador automático:**
+    ```cmd
+    scripts\setup_windows.bat
+    ```
+    Este script:
+    *   Verifica la instalación de Python y Git.
+    *   Crea y activa un entorno virtual (`venv`).
+    *   Instala las dependencias con `uv` (mucho más rápido que `pip`).
+    *   Descarga el modelo `qwen2.5:7b` con Ollama.
+    *   Configura el archivo `config.toml` automáticamente.
+
+3.  **¡Listo!** Ya puedes ejecutar OpenManus. Ve a la sección [Modos de Ejecución](#modos-de-ejecución).
+
+---
+
+## 🛠️ Instalación Paso a Paso (Manual)
+
+Si prefieres hacerlo tú mismo o el script automático falla, sigue estos pasos.
+
+### 1. Instalar Python 3.12
+1.  Descarga el instalador desde [python.org](https://www.python.org/downloads/release/python-3120/).
+2.  Durante la instalación, **marca la opción "Add Python to PATH"** y, si aparece, haz clic en "Disable path length limit".
+3.  Verifica la instalación abriendo una terminal (`cmd`) y ejecutando:
+    ```cmd
+    python --version
+    ```
+
+### 2. Instalar Git
+1.  Descarga Git desde [git-scm.com](https://git-scm.com/download/win).
+2.  Instálalo con las opciones por defecto.
+
+### 3. Instalar Ollama
+1.  Descarga el instalador para Windows desde [ollama.com](https://ollama.com/download/windows).
+2.  Ejecuta el instalador. Ollama se ejecutará en segundo plano.
+3.  Verifica que esté funcionando:
+    ```cmd
+    ollama --version
+    ```
+4.  Descarga el modelo recomendado:
+    ```cmd
+    ollama pull qwen2.5:7b
+    ```
+    > **Alternativas:** `llama3:8b` (mejor en inglés) o `qwen2.5:3b` (más ligero).
+
+### 4. Clonar y Preparar OpenManus
+1.  Clona el repositorio oficial de OpenManus:
+    ```cmd
+    git clone https://github.com/FoundationAgents/OpenManus.git
+    cd OpenManus
+    ```
+2.  Crea y activa un entorno virtual:
+    ```cmd
+    python -m venv venv
+    venv\Scripts\activate
+    ```
+3.  Instala `uv` para una gestión de dependencias más rápida:
+    ```cmd
+    pip install uv
+    ```
+4.  Instala las dependencias del proyecto:
+    ```cmd
+    uv pip install -r requirements.txt
+    ```
+5.  (Opcional) Instala el navegador para la automatización web:
+    ```cmd
+    playwright install
+    ```
+
+### 5. Configurar OpenManus para Ollama
+1.  Crea el archivo de configuración desde el ejemplo:
+    ```cmd
+    copy config\config.example.toml config\config.toml
+    ```
+2.  Abre `config\config.toml` con un editor de texto (como Notepad++ o VS Code).
+3.  **Reemplaza todo el contenido** con lo siguiente (ajusta el modelo si usas otro):
+    ```toml
+    # Configuración para usar Ollama con un modelo local
+    [llm]
+    model = "qwen2.5:7b"          # O "llama3:8b", "qwen2.5:3b", etc.
+    base_url = "http://localhost:11434/v1"
+    api_key = "ollama"            # No se usa, pero es necesario para el formato
+    max_tokens = 4096
+    temperature = 0.0
+
+    # La configuración de visión puede ser la misma o apuntar a un modelo diferente
+    [llm.vision]
+    model = "qwen2.5:7b"
+    base_url = "http://localhost:11434/v1"
+    api_key = "ollama"
+    max_tokens = 4096
+    temperature = 0.0
+    ```
+    > **⚠️ Importante:** El endpoint debe ser `.../v1`, no `.../api` para la compatibilidad con la API de OpenAI que OpenManus espera.
+
+---
+
+## ⚙️ Configuración Avanzada
+
+*   **Cambiar de Modelo:** Si descargas otro modelo (ej. `llama3.1:8b`), solo actualiza el campo `model` en ambas secciones del `config.toml`.
+*   **Ajustar Parámetros:** Puedes modificar `max_tokens` (longitud de la respuesta) y `temperature` (creatividad, 0.0 = determinista, 1.0 = muy creativo).
+*   **Desactivar Caché de Hugging Face:** Si usas modelos locales, puedes desactivar la caché de Hugging Face para ahorrar espacio editando `config.toml` y añadiendo:
+    ```toml
+    enable_hf_cache = false
+    ```
+
+---
+
+## ▶️ Modos de Ejecución
+
+OpenManus ofrece diferentes formas de interactuar con él.
+
+### 1. Interfaz Web (Recomendado para la mayoría)
+Lanza una interfaz gráfica en tu navegador, mucho más amigable.
+```cmd
+python web_run.py
+```
+Luego, abre tu navegador y ve a la dirección que aparecerá (normalmente `http://127.0.0.1:8000`).
+
+### 2. Modo Terminal (CLI)
+Ideal para usuarios avanzados o para integrar en scripts.
+```cmd
+python main.py
+```
+Introduce tu consulta directamente en la terminal.
+
+### 3. Modo MCP (Model Context Protocol)
+Para conectar OpenManus con herramientas externas o servidores MCP.
+```cmd
+python run_mcp.py
+```
+
+---
+
+## 🐛 Solución de Problemas
+
+| Problema | Posible Solución |
+| :--- | :--- |
+| **`'python' no se reconoce`** | No añadiste Python al PATH. Reinstala Python y marca la opción "Add Python to PATH". |
+| **`'ollama' no se reconoce`** | Asegúrate de que Ollama está instalado y en ejecución. Busca el icono en la bandeja del sistema. |
+| **Error de conexión a Ollama** | Verifica que Ollama esté corriendo (`ollama serve`). Comprueba que la URL en `config.toml` es `http://localhost:11434/v1`. Revisa que el firewall de Windows no esté bloqueando el puerto 11434. |
+| **El modelo no responde o da errores** | Asegúrate de que el modelo que pusiste en `config.toml` coincide con el que descargaste con `ollama pull`. Prueba con `qwen2.5:7b` que es el más estable para OpenManus. |
+| **Error de dependencias (numpy, etc.)** | A veces hay conflictos. Prueba a instalar una versión específica: `uv pip install numpy==1.23.5` y luego vuelve a instalar `requirements.txt`. |
+| **El agente no usa las herramientas** | Asegúrate de que el modelo soporta `function calling`. Modelos como `qwen2.5-coder` pueden tener problemas. Usa `qwen2.5:7b` o `llama3:8b`. |
+
+---
+
+## ❓ Preguntas Frecuentes (FAQ)
+
+**¿Puedo usar otros modelos?**
+Sí, cualquier modelo que Ollama soporte y que tenga buen soporte de `function calling`. Modelos como `mistral`, `llama3` o `qwen2.5` funcionan bien.
+
+**¿Necesito una GPU?**
+No es estrictamente necesario, pero la experiencia será mucho más lenta sin una. Modelos de 7B parámetros pueden funcionar aceptablemente en una CPU moderna con suficiente RAM.
+
+**¿Es realmente gratuito?**
+Sí, al 100%. No necesitas ninguna clave API de pago. Todo se ejecuta en tu propia máquina.
+
+**¿Puedo instalar esto en macOS o Linux?**
+Sí, los pasos son muy similares, solo cambian los comandos para activar el entorno virtual (`source venv/bin/activate`) y la ruta de los scripts.
+
+**¿Qué hago si el script `setup_windows.bat` no funciona?**
+Puedes seguir la [Instalación Paso a Paso (Manual)](#instalación-paso-a-paso-manual). El script es solo un atajo para automatizar esos pasos.
+
+```
+
+#### 2. `config/config.example.toml`
+
+Archivo de ejemplo, ya configurado para Ollama.
+
+```toml
+# OpenManus Configuration for Ollama (Local)
+# Copy this file to config.toml and adjust as needed.
+
+[llm]
+model = "qwen2.5:7b"                # Change to your downloaded model
+base_url = "http://localhost:11434/v1" # Ollama's OpenAI-compatible endpoint
+api_key = "ollama"                  # Placeholder, not used by Ollama
+max_tokens = 4096
+temperature = 0.0
+
+[llm.vision]
+model = "qwen2.5:7b"                # Can be the same or a vision model
+base_url = "http://localhost:11434/v1"
+api_key = "ollama"
+max_tokens = 4096
+temperature = 0.0
+
+# Uncomment to disable Hugging Face cache if you only use local models
+# enable_hf_cache = false
+```
+
+#### 3. `scripts/setup_windows.bat`
+
+Script mejorado con más verificaciones y mensajes de estado.
+
+```batch
+@echo off
+setlocal enabledelayedexpansion
+title OpenManus Installer for Windows
+
+echo ===================================================
+echo   OpenManus + Ollama Installer for Windows 11
+echo ===================================================
+echo.
+
+:: --- Check for Python ---
+echo [1/6] Checking Python installation...
+python --version >nul 2>&1
+if errorlevel 1 (
+    echo [ERROR] Python is not installed or not in PATH.
+    echo Please install Python 3.12 from https://www.python.org/downloads/
+    echo Make sure to check "Add Python to PATH" during installation.
+    pause
+    exit /b 1
+)
+echo [OK] Python found.
+echo.
+
+:: --- Check for Git ---
+echo [2/6] Checking Git installation...
+git --version >nul 2>&1
+if errorlevel 1 (
+    echo [ERROR] Git is not installed or not in PATH.
+    echo Please install Git from https://git-scm.com/download/win
+    pause
+    exit /b 1
+)
+echo [OK] Git found.
+echo.
+
+:: --- Create Virtual Environment ---
+echo [3/6] Creating Python virtual environment...
+if not exist "venv" (
+    python -m venv venv
+    if errorlevel 1 (
+        echo [ERROR] Failed to create virtual environment.
+        pause
+        exit /b 1
+    )
+    echo [OK] Virtual environment created.
+) else (
+    echo [OK] Virtual environment already exists.
+)
+echo.
+
+:: --- Activate venv and Install Dependencies ---
+echo [4/6] Activating virtual environment and installing dependencies...
+call venv\Scripts\activate
+if errorlevel 1 (
+    echo [ERROR] Failed to activate virtual environment.
+    pause
+    exit /b 1
+)
+
+echo Installing uv (fast package installer)...
+pip install uv --quiet
+if errorlevel 1 (
+    echo [WARN] Failed to install uv. Falling back to pip...
+    pip install -r requirements.txt
+) else (
+    echo Installing dependencies with uv...
+    uv pip install -r requirements.txt
+)
+if errorlevel 1 (
+    echo [ERROR] Failed to install dependencies.
+    echo Try manually: pip install -r requirements.txt
+    pause
+    exit /b 1
+)
+echo [OK] Dependencies installed.
+echo.
+
+:: --- Copy Configuration File ---
+echo [5/6] Setting up configuration file...
+if not exist "config\config.toml" (
+    if exist "config\config.example.toml" (
+        copy config\config.example.toml config\config.toml >nul
+        echo [OK] Configuration file created.
+    ) else (
+        echo [WARN] Example configuration file not found.
+        echo Please create config\config.toml manually.
+    )
+) else (
+    echo [OK] Configuration file already exists.
+)
+echo.
+
+:: --- Pull Ollama Model ---
+echo [6/6] Verifying and pulling the Ollama model (qwen2.5:7b)...
+echo This may take several minutes depending on your internet speed.
+ollama pull qwen2.5:7b
+if errorlevel 1 (
+    echo [WARN] Failed to pull qwen2.5:7b.
+    echo Please run manually: ollama pull qwen2.5:7b
+    echo Or check that Ollama is installed and running.
+) else (
+    echo [OK] Model ready.
+)
+echo.
+
+:: --- Final Message ---
+echo ===================================================
+echo Setup completed successfully!
+echo.
+echo You can now run OpenManus:
+echo   - Web Interface: python web_run.py
+echo   - CLI Mode:      python main.py
+echo   - MCP Mode:      python run_mcp.py
+echo ===================================================
+pause
+```
+
+#### 4. `scripts/run_web_ui.bat` (Script de lanzamiento rápido)
+
+```batch
+@echo off
+title OpenManus Web UI
+echo Starting OpenManus Web Interface...
+call venv\Scripts\activate
+python web_run.py
+pause
+```
+
+#### 5. `scripts/run_cli.bat` (Script de lanzamiento rápido)
+
+```batch
+@echo off
+title OpenManus CLI
+echo Starting OpenManus in CLI mode...
+call venv\Scripts\activate
+python main.py
+pause
+```
+
+#### 6. `.gitignore`
+
+Ignora todos los archivos generados y específicos del entorno.
+
+```
+# Python
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.env
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# OpenManus specific
+logs/
+workspace/
+output/
+config/config.toml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+```
+
+---
+
+### ¿Cómo usar este repositorio?
+
+1.  **Clona o descarga** este repositorio.
+2.  **Ejecuta el script** `scripts\setup_windows.bat` como administrador (aunque normalmente no es necesario).
+3.  Sigue las instrucciones en pantalla. El script se encargará de todo, desde verificar las dependencias hasta descargar el modelo.
+4.  Una vez terminado, ejecuta `scripts\run_web_ui.bat` para abrir la interfaz web y empezar a usar tu agente de IA.
+
+Este repositorio soluciona los problemas comunes, automatiza el proceso tedioso y proporciona una base sólida y bien documentada para que cualquiera pueda tener su propio OpenManus funcionando en minutos.
+Gemini
+Nueva conversación
+Buscar conversaciones
+Imágenes
+Vídeos
+Biblioteca
+Gems
+Nuevo cuaderno
+Hernando Carrillo Sánchez Architecture and Design Portfolio
+Architectural Portfolio of Hernando Carrillo Sánchez
+Todos los cuadernos
+Adaptación Psicológica al Cautiverio y Doble Pensar
+Configuración de OpenManus con Ollama
+Eliminar Texto de Imagen y Mejorar
+Prompt Refinement for AI Art
+GitHub Repository Setup for CARQUIDEC
+Análisis de Fotos: ¿Reales o IA?
+Retratos IA y Regalos para Luiggi
+Pedro's Full-Stack Monorepo Project
+21st.dev: Modelo de Negocio y Código
+Análise do Vínculo "JOTA" 1
+Conflicto Laboral Telus/CCC/Meta Barcelona
+Consulta Adhesión Demanda Colectiva TELUS
+Ajustar PDF a Una Sola Página
+Configurar OpenCode con Groq CLI
+PowerShell Script: Python Server Health Check
+Actualización de Perfil de GitHub
+Troubleshooting Git Hook Failure
+OpenAI API Credits: Free Options
+Arquitectura y Paisajismo de Hernando Carrillo
+Alibaba Cloud Security Center Overview
+Cloud Free Quota Alert and Management
+Configuración API Keys y Proveedores
+Optimizing Code Agents with Ponytail
+Prompt Adaptado para Fotografía Arquitectónica
+Análisis y Solución Pantalla Verde Error
+Diseño de Ecosistema Empresarial IA
+"Belentani" Narrative Search and Alternatives
+Evitar Bloqueos en Automatización Web
+Arquitectura de Convergencia Agéntica: MiMo Code como Frontend Visual de VS Code/Cursor y Backend de Claude Code # COMITÉ MULTID
+BELENTANI OMEGA — PLAN DE EJECUCIÓN 300 PASOS SUBTITLE: Unificación HTML + Máxima Potencia Visual
+Belentani: Biografía y Carrera Musical
+Portal Clientes: Diseño y Arquitectura
+Proyecto Agencia IA: Arquitectura y Coste
+
+Actividad
+L'Hospitalet de Llobregat, España
+Según tus sitios (casa)
+Actualizar ubicación
+Conversación con Gemini
+evalua estos archivos y crea una repo de github completalo si hace falta. entregalo hecho
+
+Evaluación de los Archivos
+Los cuatro documentos proporcionados forman en conjunto una Guía de Instalación y Configuración de OpenManus + Ollama para Windows 11 (Sin Docker).  
+PDF
++ 2
+
+Puntos clave del análisis:
+Objetivo: Ejecutar un agente de IA autónomo (OpenManus o la alternativa Agent-Zero) de forma completamente local, gratuita y nativa en Windows 11 utilizando Ollama.  
+PDF
++ 2
+
+Requisitos de hardware/software: Python 3.11/3.12, Git, Ollama (usando modelos como qwen2.5:7b o qwen2.5:3b) y al menos 8-16 GB de RAM.  
+PDF
++ 2
+
+Puntos críticos detectados:
+
+Modelos LLM: Se especifica evitar qwen2.5-coder debido a la falta de soporte de tool calling adecuado en OpenManus. Se recomienda qwen2.5:7b o qwen3:8b (con reserva por alucinaciones en llamadas a herramientas).  
+PDF
++ 3
+
+Configuración: Para que OpenManus funcione con Ollama, el endpoint debe apuntar a http://localhost:11434/v1 en config.toml.  
+PDF
++ 2
+
+Formas de ejecución: Soporta modo CLI (main.py), interfaz Web (web_run.py) y MCP (run_mcp.py).  
+PDF
++ 1
+
+Estructura de Repositorio GitHub Ready-to-Use
+A continuación tienes la estructura de código completa para clonar o inicializar un repositorio listo para ejecutar OpenManus con Ollama en Windows.
+
+1. README.md
+Markdown
+# OpenManus + Ollama (Windows 11 Native / No-Docker)
+
+Agente de IA autónomo local y gratuito sin depender de Docker ni API Keys de pago.
+
+## 🚀 Requisitos Previos
+
+* **Sistema Operativo:** Windows 10/11
+* **RAM:** 16 GB (Recomendado)
+* **Python:** 3.11.x o 3.12.x (Asegúrate de marcar "Add Python to PATH")
+* **Ollama:** Instalado y corriendo (`ollama serve`)
+
+## 📦 Instalación Rápida
+
+1. **Clonar este repositorio:**
+   ```cmd
+   git clone [https://github.com/tu-usuario/openmanus-ollama-win11.git](https://github.com/tu-usuario/openmanus-ollama-win11.git)
+   cd openmanus-ollama-win11
+Descargar el modelo en Ollama:
+
+DOS
+ollama pull qwen2.5:7b
+Crear entorno virtual e instalar dependencias:
+
+DOS
+python -m venv venv
+venv\Scripts\activate
+pip install uv
+uv pip install -r requirements.txt
+Configurar el entorno Ollama:
+
+DOS
+copy config\config.example-model-ollama.toml config\config.toml
+🎯 Modos de Ejecución
+Modo CLI (Terminal):
+
+DOS
+python main.py
+Modo Web UI (Recomendado):
+
+DOS
+python web_run.py
+Modo MCP (Model Context Protocol):
+
+DOS
+python run_mcp.py
+
+---
+
+### 2. `config/config.toml`
+*(Archivo de configuración precargado para conectarse a Ollama localmente[cite: 1, 3, 4])*
+
+```toml
+[llm]
+api_type = "ollama"
+model = "qwen2.5:7b"
+base_url = "http://localhost:11434/v1"
+max_tokens = 4096
+temperature = 0.0
+
+[agent]
+system_prompt = "You are OpenManus, an autonomous AI assistant capable of running code and performing web actions."
+3. Script de Auto-Configuración (setup_windows.bat)
+(Script automatizado para simplificar el proceso en Windows 11)
+
+Fragmento de código
+@echo off
+echo ===================================================
+echo   Instalador y Configurador Rápido de OpenManus
+echo ===================================================
+
+:: 1. Verificar si el venv existe
+if not exist "venv" (
+    echo [1/4] Creando entorno virtual de Python...
+    python -m venv venv
+) else (
+    echo [1/4] Entorno virtual detectado.
+)
+
+:: 2. Activar venv e instalar dependencias
+echo [2/4] Activando venv e instalando dependencias con uv...
+call venv\Scripts\activate
+pip install uv --quiet
+uv pip install -r requirements.txt
+
+:: 3. Copiar archivo de configuración
+echo [3/4] Configurando archivo TOML para Ollama...
+if not exist "config\config.toml" (
+    if exist "config\config.example-model-ollama.toml" (
+        copy config\config.example-model-ollama.toml config\config.toml
+    ) else (
+        echo [ERROR] No se encontró el plantilla de configuración.
+    )
+) else (
+    echo El archivo config.toml ya existe. Skipping copy.
+)
+
+:: 4. Verificar servicio Ollama
+echo [4/4] Verificando modelo qwen2.5:7b en Ollama...
+ollama pull qwen2.5:7b
+
+echo ===================================================
+echo Setup completado con exito!
+echo Para iniciar la interfaz web ejecuta: python web_run.py
+echo ===================================================
+pause
+4. .gitignore
+Fragmento de código
+# Python
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.env
+
+# OpenManus Logs & Output
+logs/
+workspace/
+output/
+config/config.toml
+
+# IDE & OS
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
+
+
+
+Gemini es una IA y puede cometer errores, incluso sobre personas. Tu privacidad y GeminiSe abre en una ventana nueva
+
+
+Qwen3.7-Max
+aumenta info al maximo 
+Gemini
+Nueva conversación
+Buscar conversaciones
+Imágenes
+Vídeos
+Biblioteca
+Gems
+Nuevo cuaderno
+Hernando Carrillo Sánchez Architecture and Design Portfolio
+Architectural Portfolio of Hernando Carrillo Sánchez
+Todos los cuadernos
+Adaptación Psicológica al Cautiverio y Doble Pensar
+Configuración de OpenManus con Ollama
+Eliminar Texto de Imagen y Mejorar
+Prompt Refinement for AI Art
+GitHub Repository Setup for CARQUIDEC
+Análisis de Fotos: ¿Reales o IA?
+Retratos IA y Regalos para Luiggi
+Pedro's Full-Stack Monorepo Project
+21st.dev: Modelo de Negocio y Código
+Análise do Vínculo "JOTA" 1
+Conflicto Laboral Telus/CCC/Meta Barcelona
+Consulta Adhesión Demanda Colectiva TELUS
+Ajustar PDF a Una Sola Página
+Configurar OpenCode con Groq CLI
+PowerShell Script: Python Server Health Check
+Actualización de Perfil de GitHub
+Troubleshooting Git Hook Failure
+OpenAI API Credits: Free Options
+Arquitectura y Paisajismo de Hernando Carrillo
+Alibaba Cloud Security Center Overview
+Cloud Free Quota Alert and Management
+Configuración API Keys y Proveedores
+Optimizing Code Agents with Ponytail
+Prompt Adaptado para Fotografía Arquitectónica
+Análisis y Solución Pantalla Verde Error
+Diseño de Ecosistema Empresarial IA
+"Belentani" Narrative Search and Alternatives
+Evitar Bloqueos en Automatización Web
+Arquitectura de Convergencia Agéntica: MiMo Code como Frontend Visual de VS Code/Cursor y Backend de Claude Code # COMITÉ MULTID
+BELENTANI OMEGA — PLAN DE EJECUCIÓN 300 PASOS SUBTITLE: Unificación HTML + Máxima Potencia Visual
+Belentani: Biografía y Carrera Musical
+Portal Clientes: Diseño y Arquitectura
+Proyecto Agencia IA: Arquitectura y Coste
+
+Actividad
+L'Hospitalet de Llobregat, España
+Según tus sitios (casa)
+Actualizar ubicación
+Conversación con Gemini
+evalua estos archivos y crea una repo de github completalo si hace falta. entregalo hecho
+
+Evaluación de los Archivos
+Los cuatro documentos proporcionados forman en conjunto una Guía de Instalación y Configuración de OpenManus + Ollama para Windows 11 (Sin Docker).  
+PDF
++ 2
+
+Puntos clave del análisis:
+Objetivo: Ejecutar un agente de IA autónomo (OpenManus o la alternativa Agent-Zero) de forma completamente local, gratuita y nativa en Windows 11 utilizando Ollama.  
+PDF
++ 2
+
+Requisitos de hardware/software: Python 3.11/3.12, Git, Ollama (usando modelos como qwen2.5:7b o qwen2.5:3b) y al menos 8-16 GB de RAM.  
+PDF
++ 2
+
+Puntos críticos detectados:
+
+Modelos LLM: Se especifica evitar qwen2.5-coder debido a la falta de soporte de tool calling adecuado en OpenManus. Se recomienda qwen2.5:7b o qwen3:8b (con reserva por alucinaciones en llamadas a herramientas).  
+PDF
++ 3
+
+Configuración: Para que OpenManus funcione con Ollama, el endpoint debe apuntar a http://localhost:11434/v1 en config.toml.  
+PDF
++ 2
+
+Formas de ejecución: Soporta modo CLI (main.py), interfaz Web (web_run.py) y MCP (run_mcp.py).  
+PDF
++ 1
+
+Estructura de Repositorio GitHub Ready-to-Use
+A continuación tienes la estructura de código completa para clonar o inicializar un repositorio listo para ejecutar OpenManus con Ollama en Windows.
+
+1. README.md
+Markdown
+# OpenManus + Ollama (Windows 11 Native / No-Docker)
+
+Agente de IA autónomo local y gratuito sin depender de Docker ni API Keys de pago.
+
+## 🚀 Requisitos Previos
+
+* **Sistema Operativo:** Windows 10/11
+* **RAM:** 16 GB (Recomendado)
+* **Python:** 3.11.x o 3.12.x (Asegúrate de marcar "Add Python to PATH")
+* **Ollama:** Instalado y corriendo (`ollama serve`)
+
+## 📦 Instalación Rápida
+
+1. **Clonar este repositorio:**
+   ```cmd
+   git clone [https://github.com/tu-usuario/openmanus-ollama-win11.git](https://github.com/tu-usuario/openmanus-ollama-win11.git)
+   cd openmanus-ollama-win11
+Descargar el modelo en Ollama:
+
+DOS
+ollama pull qwen2.5:7b
+Crear entorno virtual e instalar dependencias:
+
+DOS
+python -m venv venv
+venv\Scripts\activate
+pip install uv
+uv pip install -r requirements.txt
+Configurar el entorno Ollama:
+
+DOS
+copy config\config.example-model-ollama.toml config\config.toml
+🎯 Modos de Ejecución
+Modo CLI (Terminal):
+
+DOS
+python main.py
+Modo Web UI (Recomendado):
+
+DOS
+python web_run.py
+Modo MCP (Model Context Protocol):
+
+DOS
+python run_mcp.py
+
+---
+
+### 2. `config/config.toml`
+*(Archivo de configuración precargado para conectarse a Ollama localmente[cite: 1, 3, 4])*
+
+```toml
+[llm]
+api_type = "ollama"
+model = "qwen2.5:7b"
+base_url = "http://localhost:11434/v1"
+max_tokens = 4096
+temperature = 0.0
+
+[agent]
+system_prompt = "You are OpenManus, an autonomous AI assistant capable of running code and performing web actions."
+3. Script de Auto-Configuración (setup_windows.bat)
+(Script automatizado para simplificar el proceso en Windows 11)
+
+Fragmento de código
+@echo off
+echo ===================================================
+echo   Instalador y Configurador Rápido de OpenManus
+echo ===================================================
+
+:: 1. Verificar si el venv existe
+if not exist "venv" (
+    echo [1/4] Creando entorno virtual de Python...
+    python -m venv venv
+) else (
+    echo [1/4] Entorno virtual detectado.
+)
+
+:: 2. Activar venv e instalar dependencias
+echo [2/4] Activando venv e instalando dependencias con uv...
+call venv\Scripts\activate
+pip install uv --quiet
+uv pip install -r requirements.txt
+
+:: 3. Copiar archivo de configuración
+echo [3/4] Configurando archivo TOML para Ollama...
+if not exist "config\config.toml" (
+    if exist "config\config.example-model-ollama.toml" (
+        copy config\config.example-model-ollama.toml config\config.toml
+    ) else (
+        echo [ERROR] No se encontró el plantilla de configuración.
+    )
+) else (
+    echo El archivo config.toml ya existe. Skipping copy.
+)
+
+:: 4. Verificar servicio Ollama
+echo [4/4] Verificando modelo qwen2.5:7b en Ollama...
+ollama pull qwen2.5:7b
+
+echo ===================================================
+echo Setup completado con exito!
+echo Para iniciar la interfaz web ejecuta: python web_run.py
+echo ===================================================
+pause
+4. .gitignore
+Fragmento de código
+# Python
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.env
+
+# OpenManus Logs & Output
+logs/
+workspace/
+output/
+config/config.toml
+
+# IDE & OS
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
+
+
+
+Gemini es una IA y puede cometer errores, incluso sobre personas. Tu privacidad y GeminiSe abre en una ventana nueva
+
+
+
+Pensamiento completado
+Voy a investigar a fondo OpenManus y Agent-Zero para crear un repositorio completo, actualizado y profesional.
+Busqué en la web
+Pensamiento completado
+Voy a crear un repositorio GitHub completo y listo para usar con OpenManus + Ollama para Windows 11. Aquí está la estructura completa:
+📦 Estructura del Repositorio: openmanus-ollama-win11
+1. README.md (Archivo principal)
+markdown
+1234567891011121314151617181920212223242526272829303132333435363738
+Ejecuta el instalador automático:
+cmd
+1
+Inicia la interfaz web:
+cmd
+1
+Método 2: Instalación Manual
+Paso 1: Instalar Dependencias
+Instala Python 3.11 o 3.12 desde python.org
+✅ Marca "Add Python to PATH"
+Instala Git desde git-scm.com
+Instala Ollama desde ollama.com
+Paso 2: Descargar Modelo de IA
+bash
+1
+💡 Nota: También puedes usar ollama pull llama3.2 o ollama pull mistral
+Paso 3: Configurar Entorno Virtual
+cmd
+1234
+Paso 4: Configurar Ollama
+cmd
+1
+Edita config\config.toml si necesitas cambiar el modelo o parámetros.
+🎮 Modos de Ejecución
+1. Modo CLI (Terminal Interactiva)
+cmd
+1
+2. Modo Web UI (Recomendado)
+cmd
+1
+Abre tu navegador en http://localhost:8000
+3. Modo MCP (Model Context Protocol)
+cmd
+1
+🔧 Modelos Recomendados
+Modelo
+RAM Requerida
+Velocidad
+Calidad
+Uso Recomendado
+qwen2.5:3b
+8 GB
+⚡⚡⚡ Rápido
+⭐⭐⭐
+Tareas simples, chat
+qwen2.5:7b
+12 GB
+⚡⚡ Medio
+⭐⭐⭐⭐
+Balance ideal
+qwen2.5:14b
+16 GB
+⚡ Lento
+⭐⭐⭐⭐⭐
+Tareas complejas
+llama3.2
+8 GB
+⚡⚡⚡ Rápido
+⭐⭐⭐
+Alternativa rápida
+mistral
+8 GB
+⚡⚡ Medio
+⭐⭐⭐⭐
+Código y análisis
+⚠️ Importante: Evita usar qwen2.5-coder con OpenManus, no soporta tool calling correctamente.
+🛠️ Configuración Avanzada
+Cambiar Modelo en config.toml
+toml
+1234567
+Modelos de Visión (Imágenes)
+toml
+1234567
+📋 Comandos Útiles
+Verificar Ollama
+cmd
+12
+Detener/Iniciar Ollama
+cmd
+12
+Actualizar Dependencias
+cmd
+12
+🐛 Troubleshooting
+Error: "ModuleNotFoundError"
+cmd
+12
+Error: "Connection refused" en localhost:11434
+cmd
+123456
+Error: "Out of memory"
+Cierra aplicaciones que consuman RAM
+Usa un modelo más pequeño: ollama pull qwen2.5:3b
+Aumenta max_tokens en config.toml
+La Web UI no carga
+cmd
+12345
+El agente no ejecuta herramientas
+Verifica que el modelo soporte tool calling
+Reinicia con python main.py --verbose
+Consulta los logs en logs/
+📁 Estructura del Proyecto
+123456789101112131415
+🔄 Alternativa: Agent-Zero
+Si OpenManus no satisface tus necesidades, prueba Agent-Zero:
+bash
+12345
+Ventajas de Agent-Zero:
+Escritorio Linux completo integrado
+Navegador con anotaciones DOM
+100+ plugins comunitarios
+Multi-agente cooperativo
+Integración con LibreOffice
+🤝 Contribuir
+Las contribuciones son bienvenidas:
+Fork el repositorio
+Crea una rama (git checkout -b feature/nueva-funcionalidad)
+Commit tus cambios (git commit -m 'Añade nueva funcionalidad')
+Push a la rama (git push origin feature/nueva-funcionalidad)
+Abre un Pull Request
+📄 Licencia
+Este proyecto está bajo la Licencia MIT. Ver archivo LICENSE para más detalles.
+🙏 Agradecimientos
+OpenManus - Framework base
+Ollama - Ejecución local de LLMs
+MetaGPT - Comunidad contribuyente
+📞 Soporte
+Issues: GitHub Issues
+Discusiones: GitHub Discussions
+Hecho con ❤️ para la comunidad de IA local
+⭐ Si este proyecto te ayuda, considera darle una estrella en GitHub!
+123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263
+3. config/config.example-model-ollama.toml (Configuración base)
+toml
+1234567891011121314151617181920212223242526272829303132333435363738
+4. setup_windows.bat (Instalador automático)
+batch
+126127128129
+5. uninstall.bat (Desinstalador)
+batch
+1234567891011121314151617181920212223242526272829303132333435363738394041
+6. .gitignore (Archivos a ignorar)
+gitignore
+1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859606162636465666768697071727374757677
+7. start_web.bat (Script rápido para iniciar Web UI)
+batch
+1234567891011121314151617181920212223242526272829
+8. start_cli.bat (Script rápido para modo CLI)
+batch
+123456789101112131415161718192021222324252627
+9. check_system.bat (Verificador del sistema)
+batch
+1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859606162
+10. LICENSE (Licencia MIT)
+123456789101112131415161718192021
+11. CONTRIBUTING.md (Guía de contribución)
+markdown
+1234567891011121314151617181920212223242526272829
+Haz commits descriptivos:
+bash
+1
+Push a tu fork:
+bash
+1
+Abre un Pull Request
+📝 Estándares de Código
+Usa Python 3.11+
+Sigue PEP 8
+Añade docstrings a funciones
+Escribe tests para nuevas funcionalidades
+Documenta cambios en el README
+🔍 Proceso de Revisión
+Un maintainer revisará tu PR
+Puede solicitar cambios
+Una vez aprobado, se merge a main
+Tu contribución aparecerá en CONTRIBUTORS.md
+💬 Comunicación
+Discusiones: GitHub Discussions
+Chat: Discord de OpenManus
+Email: tu-email@ejemplo.com
+🙏 Agradecimientos
+Todos los contribuidores serán añadidos a CONTRIBUTORS.md
+¡Gracias por hacer este proyecto mejor! 🎉
+1234567891011121314151617181920212223242526272829303132333435363738394041
+13. CONTRIBUTORS.md (Lista de contribuidores)
+markdown
+1
+
+¿Cómo puedo ayudarte hoy?
+
+
+El contenido generado por IA puede no ser preciso.
+Cargando...
+Enhancing the repository documentation with comprehensive details and practical guidance
+I am enriching the project's narrative by integrating in-depth explanations of the integration process, ensuring clarity and usability for users on Windows 11 without Docker.
+I am expanding on setup steps, configuration nuances, and troubleshooting tips to eliminate common barriers.
+The result is a polished, self-contained guide that transforms the repository into a complete, accessible resource.
+Explorando las bases de conocimiento actuales para ofrecer una solución integral y actualizada
+Estoy analizando las características y estructuras más recientes de los proyectos destacados en el ecosistema de desarrollo, asegurando que la información sea precisa y relevante.
+Evalúo alternativas viables con enfoques innovadores que puedan mejorar la funcionalidad y escalabilidad del sistema propuesto.
+Construyo un entorno completo y listo para implementar, integrando todos los componentes necesarios con claridad y coherencia.
+Busqué en la web
+github.com
+github.com
+openmanus.github.io
++27
+Exploring the repository structure and key configuration files
+I am analyzing the project's layout to understand how components are organized and interrelated.
+I am examining the dependency specifications and configuration settings to grasp the technical foundation and operational requirements.
+This allows me to build a comprehensive picture of the system’s architecture and implementation details.
+Fuentes leídas
+github.com
+github.com
+github.com
+Exploring Agent-Zero as a viable alternative to OpenManus.
+I am investigating its architecture and capabilities to assess compatibility with existing workflows.
+Delving into configuration methods beyond containerized deployment to support direct installation.
+Evaluating integration potential with Ollama for seamless model management and execution.
+Fuentes leídas
+github.com
+github.com
+Crear un repositorio GitHub completo y listo para usar
+Estoy diseñando una estructura de proyecto coherente y funcional, integrando las capacidades clave de ambos frameworks en un entorno organizado.
+Me aseguro de que cada componente esté documentado con claridad, desde la configuración inicial hasta las opciones de despliegue.
+El resultado final es un repositorio autónomo, fácil de entender y ejecutar, listo para impulsar el desarrollo de agentes inteligentes.
+Buscar fuentes
+30
+1.
+https://github.com/FoundationAgents/OpenManus
+FoundationAgents/OpenManus: No fortress, purely open
+OpenManus is Coming. The prototype is launched within 3 hours. OpenManus is built by contributors from MetaGPT. : An open-source framework for building general
+2.
+https://github.com/OpenManus
+OpenManus
+OpenManus has 3 repositories available. Follow their code on GitHub. Showing 3 of 3 repositories. Updated on Apr 7, 2025 OpenManus.github.
+3.
+https://openmanus.github.io/
+OpenManus - Open-source Framework for Building AI Agents
+An open-source framework for building general AI agents. A flexible framework for creating AI agents with different capabilities and behaviors. Fully open-
+4.
+https://medium.com/pythoneers/openmanus-the-open-source-ai-thats-challenging-manus-ai-s-closed-fortress-d870e6cafc65
+OpenManus: The Open-Source AI That's Challenging
+OpenManus, an open-source alternative launched on March 6, 2025, Built in just three hours, it has already amassed 16k GitHub stars in two days,
+5.
+https://github.com/mannaandpoem/OpenManus/
+mannaandpoem/OpenManus
+The OpenManus project has moved. For the latest source code and information, please visit its new official repository: https://github.com/FoundationAgents/
+6.
+https://koizachek.substack.com/p/setting-up-and-trying-openmanus
+Setting up and trying OpenManus - by Diana Kozachek
+The Github repository offers you everything you need to set it up. Still, I'll show you what it looks like step by step, just because. Using
+7.
+https://agenthunt.io/agent/detail/github-com-FoundationAgents-OpenManus/
+Open‑Source Autonomous AI Agent Framework | agen
+Open Manus is an open-source project on GitHub that aims to provide a framework for building general AI agents. The primary access point is the public GitHub
+8.
+https://chichieh-huang.com/posts/a3476af62056/
+OpenManus Tutorial: How to Build Your Custom AI Agent
+To install OpenManusWeb, start by cloning its repository from GitHub. git clone https://github.com/YunQiAI/OpenManusWeb.git cd OpenManusWeb.
+9.
+https://github.com/OpenManus/OpenManus-RL
+OpenManus-RL
+OpenManus-RL is an open-source initiative collaboratively led by Ulab-UIUC and MetaGPT. This project is an extended version of the original @OpenManus
+10.
+https://github.com/FoundationAgents/OpenManus/blob/main/config/config.example-model-ollama.toml
+config.example-model-ollama.toml
+OpenManus is Coming. Global LLM configuration [llm] #OLLAMA: 'ollama' model = "llama3.2" # The LLM. Your API key max_tokens = 4096 # Maximum number of tokens
+11.
+https://dev.to/nodeshiftcloud/how-to-install-run-openmanus-locally-with-ollama-no-api-keys-required-2o4i
+How to Install & Run OpenManus Locally with Ollama
+In this article, we will explore how to install OpenManus locally. 1) Install Ollama dependencies. 2) Edit the llm and llm.vision configuration
+12.
+https://codersera.com/blog/run-open-manus-on-windows-installation-guide/
+Run OpenManus on Windows: 2026 Install Guide
+OpenManus reads config/config.toml at startup. includes commented blocks for Azure OpenAI, AWS Bedrock, Ollama, and OpenRouter-style
+13.
+https://meta-quantum.today/?p=3542
+Open Manus AI: EASY Install Guide and Is it REALLY Good
+Step 3: Configure OpenManus for Ollama. Edit the config.toml file to use Ollama: 1. Navigate to the config folder and copy the example config
+14.
+https://medium.com/@prabhudev.guntur/unlocking-ai-power-run-openmanus-without-an-openai-key-f93d1a0ab5ea
+Unlocking AI Power: Run OpenManus Without an OpenAI
+Below are step-by-step guide to setting up Ollama on Google Colab and using it with OpenManus running locally on your machine. This setup allows
+15.
+https://docs.ollama.com/integrations/codex
+Codex CLI
+Profile-based setup. For a persistent Codex CLI configuration, create ~/.codex/ollama-launch.config.toml : model = "gpt-oss:120b" model_provider = "ollama
+16.
+https://chichieh-huang.com/posts/a3476af62056/
+OpenManus Tutorial: How to Build Your Custom AI Agent
+Next, open config.toml and enter the LLM model you want to use, along with the corresponding API key. Based on my experience, GPT-4o works
+17.
+https://github.com/FoundationAgents/OpenManus/blob/main/requirements.txt
+requirements.txt - FoundationAgents/OpenManus
+No fortress, purely open ground. OpenManus is Coming. - OpenManus/requirements.txt at main · FoundationAgents/OpenManus.
+18.
+https://codersera.com/blog/run-open-manus-on-windows-installation-guide/
+Run OpenManus on Windows: 2026 Install Guide
+System requirements (2026) OS: Windows 10 22H2 or Windows 11 (24H2 recommended). RAM: 16 GB for cloud-hosted LLM use. 32 GB minimum if you also
+19.
+https://medium.com/coding-nexus/openmanus-the-free-open-source-ai-agent-that-replaces-manus-no-invite-code-needed-ae6b24e88f9b
+OpenManus: The Free Open-Source AI Agent That
+OpenManus, an open-source alternative that anyone can download and run on their own computer. No waiting list. No invite code. No subscription.
+20.
+https://koizachek.substack.com/p/setting-up-and-trying-openmanus
+Setting up and trying OpenManus - by Diana Kozachek
+Install dependencies. pip install -r requirements.txt. Can take a while. But it will download all packages needed to use OpenManus.
+21.
+https://pub.towardsai.net/openmanus-fully-free-manus-ai-agent-install-run-step-by-step-locally-and-google-colab-with-72bedfc661cc
+OpenManus: Fully Free Manus AI Agent —Install & Run
+This tutorial will guide you through the installation and setup process for OpenManus on both local machines and Google Colab.
+22.
+https://openmanus.github.io/
+OpenManus - Open-source Framework for Building AI Agents
+OpenManus provides essential capabilities for building AI agents. Agent Framework A flexible framework for creating AI agents with different capabilities and
+23.
+https://github.com/agent0ai/agent-zero
+Agent Zero AI framework · GitHub
+Agent Zero is built for people who want to understand and shape their tools. You can help by improving docs, creating skills, publishing plugins, testing model/
+24.
+https://www.agent-zero.ai/
+Agent Zero AI: Open Source Agentic Framework & Computer
+Easily build your own AI agents that work on their own operating system, create tools intelligently, learn, self-correct, and execute workflows
+25.
+https://github.com/agent0ai/agent-zero/blob/main/docs/setup/installation.md
+agent-zero/docs/setup/installation.md at main
+Agent Zero uses a local embedding model by default (runs on CPU), but you can switch to OpenAI embeddings like text-embedding-3-small or text-embedding-3-large
+26.
+https://github.com/agent0ai/agent-zero/issues/895
+feat: Add Agent Zero autonomous AI framework · Issue #895
+Summary. Added Agent Zero autonomous AI agent framework to Sparky services, configured to use GPT-OSS 120B via local Ollama.
+27.
+https://apidog.com/blog/agent-zero-ai-framework-review/
+Agent Zero Review: Open-Source AI Agents with Docker &
+Agent Zero is an open-source AI agent framework you can run securely in Docker, with support for local LLMs via Ollama. Learn setup, configuration, and real
+28.
+https://medium.com/@honeyricky1m3/agent-zero-your-new-ai-coding-buddy-and-so-much-more-for-free-powered-by-groq-gemini-f3beeb1aea27
+Agent Zero: Your New AI Coding Buddy (And So Much
+Agent Zero, a revolutionary AI coding agent framework, is here to revolutionize the way you build and automate tasks.
+29.
+https://github.com/agent0ai/agent-zero/discussions/1211
+Install Agent-Zero Without Docker #1211
+Install Agent-Zero Without Docker. Already succed without Docker thanks to AI! setup for Agent-Zero: 1. Install Ollama. Create a mock RFC handler that executes
+30.
+https://docs.gaianet.ai/templates-and-examples/templates/agent-zero/
+Agent Zero
+Agent Zero is a general purpose AI agent application. You can simply ask it to accomplish tasks on the command line. It is designed to be dynamic, organically
