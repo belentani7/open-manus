@@ -1,9 +1,9 @@
-$ErrorActionPreference = "Stop"
-
 param(
     [string]$TargetDir = ".\OpenManus",
     [string]$Model = "qwen2.5:7b"
 )
+
+$ErrorActionPreference = "Stop"
 
 if (-not (Test-Path -LiteralPath $TargetDir)) {
     git clone https://github.com/mannaandpoem/OpenManus.git $TargetDir
