@@ -29,7 +29,7 @@ Push-Location -LiteralPath $repoPath
 try {
     $root = (& git rev-parse --show-toplevel)
     Assert-GitSuccess "rev-parse"
-    if ([IO.Path]::GetFullPath($root).TrimEnd('\', '/') -ne [IO.Path]::GetFullPath($repoPath).TrimEnd('\', '/')) {
+    if ([IO.Path]::GetFullPath($root).TrimEnd([char[]]@('\', '/')) -ne [IO.Path]::GetFullPath($repoPath).TrimEnd([char[]]@('\', '/'))) {
         throw "Refusing to update a different Git repository."
     }
 
