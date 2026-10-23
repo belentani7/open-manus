@@ -105,3 +105,19 @@ Este repo conserva los PDFs y el transcript usados para construir la version pub
 ## Estado
 
 Documentacion-first repo listo para publicar y extender.
+
+## Actualizacion segura de OpenManus
+
+La actualización conserva los cambios locales: antes de ejecutar `git pull --ff-only` verifica que la carpeta sea la raíz de un repositorio Git, que la rama no esté en *detached HEAD* y que no existan cambios sin confirmar (incluidos archivos nuevos). Si hay modificaciones, primero guárdalas mediante un commit o stash; **no las borra automáticamente**.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\update-openmanus.ps1 -RepoDir .\OpenManus
+```
+
+Para actualizar únicamente el código y omitir la instalación de dependencias:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\update-openmanus.ps1 -RepoDir .\OpenManus -SkipDependencies
+```
+
+Las pruebas de regresión preparan un repositorio remoto Git **local** y no consumen créditos de Ollama ni realizan descargas; pueden ejecutarse en Windows con Python 3.11 y Git mediante `python -m unittest discover -s tests -p "test_*.py" -v`. La actualización real requiere conexión al origen Git configurado por el usuario.
