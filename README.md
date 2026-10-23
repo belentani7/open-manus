@@ -121,3 +121,11 @@ powershell -ExecutionPolicy Bypass -File .\scripts\update-openmanus.ps1 -RepoDir
 ```
 
 Las pruebas de regresión preparan un repositorio remoto Git **local** y no consumen créditos de Ollama ni realizan descargas; pueden ejecutarse en Windows con Python 3.11 y Git mediante `python -m unittest discover -s tests -p "test_*.py" -v`. La actualización real requiere conexión al origen Git configurado por el usuario.
+
+## Seguridad del instalador y los lanzadores
+
+- `setup-openmanus.ps1` **no modifica** un `OpenManus/config/config.toml` existente: puede contener claves, modelos y ajustes privados. Si ya existe, comprueba manualmente la conexión local a Ollama. El parámetro `-Model` solo configura archivos **nuevos**.
+- Para revisar o crear únicamente la configuración local, sin instalar paquetes ni crear el entorno Python, usa `powershell -ExecutionPolicy Bypass -File .\scripts\setup-openmanus.ps1 -TargetDir .\OpenManus -SkipDependencies`. Este comando sigue comprobando que Ollama responde; no es un modo de simulación y puede crear `config.toml` si falta.
+- Los lanzadores CLI/Web/MCP comprueban la existencia del entorno Python y del punto de entrada antes de ejecutarlos. Devuelven error cuando el proceso Python falla, en vez de indicar un éxito falso.
+- El repositorio contiene material histórico en PDF y transcripciones. **No publicar automáticamente** estos originales ni usar su contenido como material promocional sin revisar privacidad y derechos.
+- La compatibilidad de las rutas `main.py`, `web_run.py` y `run_mcp.py` depende de la revisión del proyecto upstream. Las pruebas de este repositorio no demuestran que todas esas rutas existan en versiones futuras.
