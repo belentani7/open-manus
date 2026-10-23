@@ -6,14 +6,24 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-# A model name must never be interpreted as TOML syntax or a new config field.
-if ($Model -notmatch '^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}
-
-if (-not (Test-Path -LiteralPath $TargetDir)) {
-    git clone https://github.com/mannaandpoem/OpenManus.git $TargetDir
+# Validate before any network, filesystem or dependency change.
+if ($Model -notmatch '^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$') {
+    throw "Invalid Ollama model name. Use letters, numbers, dots, slashes, colons or hyphens."
+}
+if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+    throw "Git is required and must be available in PATH."
+}
+if (Test-Path -LiteralPath $TargetDir) {
+    if (-not (Test-Path -LiteralPath (Join-Path $TargetDir ".git"))) {
+        throw "Refusing to configure an existing folder that is not a Git checkout: $TargetDir"
+    }
+}
+else {
+    & git clone -- https://github.com/mannaandpoem/OpenManus.git $TargetDir
+    if ($LASTEXITCODE -ne 0) { throw "OpenManus clone failed (exit code $LASTEXITCODE)." }
 }
 
-Push-Location $TargetDir
+Push-Location -LiteralPath $TargetDir
 
 if ($SkipDependencies) {
     Write-Host "Python environment and dependency installation skipped by request."
@@ -30,10 +40,12 @@ else {
     if ($LASTEXITCODE -ne 0) { throw "OpenManus dependency installation failed." }
 }
 
-try {
-    ollama list | Out-Null
-} catch {
-    throw "Ollama is not available. Start Ollama and retry."
+if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) {
+    throw "Ollama is not installed or not in PATH."
+}
+& ollama list | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    throw "Ollama is not responding. Start Ollama and retry."
 }
 
 $configExample = ".\config\config.example.toml"
@@ -59,51 +71,6 @@ elseif (Test-Path -LiteralPath $configExample -PathType Leaf) {
 }
 else {
     throw "No upstream config/config.example.toml found. Existing config was not modified; check the upstream version."
-}
-
-Pop-Location
-
-Write-Host "OpenManus prepared in $TargetDir"
-) {
-    throw "Invalid Ollama model name. Use letters, numbers, dots, slashes, colons or hyphens."
-}
-
-if (-not (Test-Path -LiteralPath $TargetDir)) {
-    git clone https://github.com/mannaandpoem/OpenManus.git $TargetDir
-}
-
-Push-Location $TargetDir
-
-if (-not (Test-Path -LiteralPath ".\.venv")) {
-    python -m venv .venv
-}
-
-& ".\.venv\Scripts\python.exe" -m pip install --upgrade pip
-& ".\.venv\Scripts\python.exe" -m pip install -r requirements.txt
-
-try {
-    ollama list | Out-Null
-} catch {
-    throw "Ollama is not available. Start Ollama and retry."
-}
-
-$configExample = ".\config\config.example.toml"
-$configTarget = ".\config\config.toml"
-
-if (Test-Path -LiteralPath $configExample -and -not (Test-Path -LiteralPath $configTarget)) {
-    Copy-Item -LiteralPath $configExample -Destination $configTarget
-}
-
-if (Test-Path -LiteralPath $configTarget) {
-    $content = Get-Content -LiteralPath $configTarget -Raw
-    $content = $content -replace 'base_url\s*=\s*".*?"', 'base_url = "http://localhost:11434/v1"'
-    $content = $content -replace 'model\s*=\s*".*?"', ('model = "' + $Model + '"')
-    if ($content -match 'api_key\s*=') {
-        $content = $content -replace 'api_key\s*=\s*".*?"', 'api_key = "ollama"'
-    } else {
-        $content += "`r`napi_key = `"ollama`"`r`n"
-    }
-    Set-Content -LiteralPath $configTarget -Value $content -Encoding UTF8
 }
 
 Pop-Location
