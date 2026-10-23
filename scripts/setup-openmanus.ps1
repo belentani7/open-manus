@@ -1,6 +1,7 @@
 param(
     [string]$TargetDir = ".\OpenManus",
-    [string]$Model = "qwen2.5:7b"
+    [string]$Model = "qwen2.5:7b",
+    [switch]$SkipDependencies
 )
 
 $ErrorActionPreference = "Stop"
@@ -14,12 +15,20 @@ if (-not (Test-Path -LiteralPath $TargetDir)) {
 
 Push-Location $TargetDir
 
-if (-not (Test-Path -LiteralPath ".\.venv")) {
-    python -m venv .venv
+if ($SkipDependencies) {
+    Write-Host "Python environment and dependency installation skipped by request."
 }
+else {
+    if (-not (Test-Path -LiteralPath ".\.venv")) {
+        python -m venv .venv
+        if ($LASTEXITCODE -ne 0) { throw "Python virtual environment creation failed." }
+    }
 
-& ".\.venv\Scripts\python.exe" -m pip install --upgrade pip
-& ".\.venv\Scripts\python.exe" -m pip install -r requirements.txt
+    & ".\.venv\Scripts\python.exe" -m pip install --upgrade pip
+    if ($LASTEXITCODE -ne 0) { throw "pip upgrade failed." }
+    & ".\.venv\Scripts\python.exe" -m pip install -r requirements.txt
+    if ($LASTEXITCODE -ne 0) { throw "OpenManus dependency installation failed." }
+}
 
 try {
     ollama list | Out-Null
