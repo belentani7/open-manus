@@ -48,7 +48,7 @@ class TestSafeUpdater(unittest.TestCase):
             ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File",
              str(SCRIPTS / "update-openmanus.ps1"), "-RepoDir", str(self.target),
              "-SkipDependencies"],
-            capture_output=True, text=True,
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
         )
 
     def test_clean_working_tree_fast_forwards_from_local_remote(self):

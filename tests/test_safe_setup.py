@@ -13,7 +13,7 @@ import tempfile
 import unittest
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "setup-openmanus.ps1"
-CAN_RUN = os.name == "nt" and shutil.which("powershell") is not None
+CAN_RUN = os.name == "nt" and shutil.which("powershell") is not None and shutil.which("git") is not None
 
 
 @unittest.skipUnless(CAN_RUN, "Requires Windows PowerShell")
@@ -24,6 +24,8 @@ class TestSafeLocalConfiguration(unittest.TestCase):
         self.target = root / "OpenManus with spaces"
         config = self.target / "config"
         config.mkdir(parents=True)
+        # The installer requires a real Git checkout, not merely a folder named .git.
+        subprocess.run(["git", "init", str(self.target)], check=True, capture_output=True)
         (config / "config.example.toml").write_text(
             '[llm]\nmodel = "upstream"\nbase_url = "https://example.invalid/v1"\n'
             'api_key = "example"\n',
@@ -69,6 +71,19 @@ class TestSafeLocalConfiguration(unittest.TestCase):
         result = self.run_setup('invalid"\napi_key = "external')
         self.assertNotEqual(result.returncode, 0)
         self.assertFalse(path.exists())
+
+    def test_config_only_mode_never_clones_a_missing_checkout(self):
+        missing = Path(self.work.name) / "missing checkout"
+        result = subprocess.run(
+            ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass",
+             "-File", str(SCRIPT), "-TargetDir", str(missing),
+             "-SkipDependencies"],
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
+            env=self.env,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Refusing to clone", result.stdout + result.stderr)
+        self.assertFalse(missing.exists())
 
 
 if __name__ == "__main__":

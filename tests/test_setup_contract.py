@@ -36,12 +36,13 @@ class SetupContractTests(unittest.TestCase):
     @unittest.skipUnless(shutil.which("powershell") or shutil.which("pwsh"), "PowerShell unavailable")
     def test_powershell_parser_reports_no_errors(self):
         shell = shutil.which("powershell") or shutil.which("pwsh")
+        script_path = str(SCRIPT).replace("'", "''")
         command = (
             "$tokens=$null;$errors=$null;"
-            "[System.Management.Automation.Language.Parser]::ParseFile($args[0],[ref]$tokens,[ref]$errors)|Out-Null;"
+            f"[System.Management.Automation.Language.Parser]::ParseFile('{script_path}',[ref]$tokens,[ref]$errors)|Out-Null;"
             "if($errors.Count -gt 0){$errors|ForEach-Object{Write-Error $_.Message};exit 1}"
         )
-        run = subprocess.run([shell, "-NoProfile", "-Command", command, str(SCRIPT)], capture_output=True, text=True)
+        run = subprocess.run([shell, "-NoProfile", "-Command", command], capture_output=True, text=True, encoding="utf-8", errors="replace")
         self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
 
 

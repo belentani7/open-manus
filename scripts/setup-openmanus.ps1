@@ -18,6 +18,9 @@ if (Test-Path -LiteralPath $TargetDir) {
         throw "Refusing to configure an existing folder that is not a Git checkout: $TargetDir"
     }
 }
+elseif ($SkipDependencies) {
+    throw "Refusing to clone OpenManus in configuration-only mode. Supply an existing Git checkout."
+}
 else {
     & git clone -- https://github.com/mannaandpoem/OpenManus.git $TargetDir
     if ($LASTEXITCODE -ne 0) { throw "OpenManus clone failed (exit code $LASTEXITCODE)." }
