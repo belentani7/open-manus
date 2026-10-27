@@ -65,6 +65,7 @@ def run_powershell(args, env=None):
     )
 
 
+@unittest.skipUnless(shutil.which("powershell"), "Requires Windows PowerShell")
 class TestDocumentedLaunchers(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -118,6 +119,48 @@ class TestDocumentedLaunchers(unittest.TestCase):
                 )
 
 
+    def test_launcher_propagates_python_exit_code(self):
+        for script, entry in LAUNCHERS.items():
+            with self.subTest(script=script):
+                path = self.target / entry
+                original = path.read_text(encoding="utf-8")
+                try:
+                    path.write_text("import sys\nsys.exit(23)\n", encoding="utf-8")
+                    proc = run_powershell(
+                        ["-File", str(SCRIPTS / script), "-TargetDir", str(self.target)]
+                    )
+                    self.assertNotEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+                    self.assertIn("exited with code 23", proc.stdout + proc.stderr)
+                finally:
+                    path.write_text(original, encoding="utf-8")
+
+    def test_launcher_rejects_missing_entrypoint(self):
+        for script, entry in LAUNCHERS.items():
+            with self.subTest(script=script):
+                path = self.target / entry
+                original = path.read_text(encoding="utf-8")
+                try:
+                    path.unlink()
+                    proc = run_powershell(
+                        ["-File", str(SCRIPTS / script), "-TargetDir", str(self.target)]
+                    )
+                    self.assertNotEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+                    self.assertIn("entry point not found", proc.stdout + proc.stderr)
+                finally:
+                    path.write_text(original, encoding="utf-8")
+
+    def test_launcher_rejects_missing_directory(self):
+        for script in LAUNCHERS:
+            with self.subTest(script=script):
+                proc = run_powershell(
+                    ["-File", str(SCRIPTS / script),
+                     "-TargetDir", str(self.work / "does-not-exist")]
+                )
+                self.assertNotEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+                self.assertIn("directory not found", proc.stdout + proc.stderr)
+
+
+@unittest.skipUnless(shutil.which("powershell"), "Requires Windows PowerShell")
 class TestScriptParsing(unittest.TestCase):
     """README.md linea 74 declara setup-openmanus.ps1 como paso de preparacion.
 
