@@ -82,5 +82,51 @@ class TestSafeUpdater(unittest.TestCase):
         self.assertTrue((self.target / "scratch.txt").exists())
 
 
+    def test_ignored_local_env_is_not_overwritten_by_upstream(self):
+        """git pull --ff-only alone overwrites ignored files when upstream tracks them."""
+        original_sha = self.git("rev-parse", "HEAD", cwd=self.target)
+        exclude = self.target / ".git" / "info" / "exclude"
+        with exclude.open("a", encoding="utf-8") as handle:
+            handle.write("\n.env\n")
+        private_env = self.target / ".env"
+        private_env.write_bytes(b"PRIVATE_TOKEN=keep-local\n")
+        self.assertEqual(self.git("status", "--porcelain", cwd=self.target), "")
+
+        (self.seed / ".env").write_text("REMOTE_TOKEN=replace\n", encoding="utf-8")
+        self.git("add", ".env", cwd=self.seed)
+        self.git("commit", "-m", "start tracking env", cwd=self.seed)
+        self.git("push", cwd=self.seed)
+
+        process = self.update()
+        self.assertNotEqual(process.returncode, 0, process.stdout + process.stderr)
+        self.assertIn("ignored local path", process.stdout + process.stderr)
+        self.assertEqual(self.git("rev-parse", "HEAD", cwd=self.target), original_sha)
+        self.assertEqual(private_env.read_bytes(), b"PRIVATE_TOKEN=keep-local\n")
+
+    def test_ignored_venv_contents_are_not_overwritten_by_upstream(self):
+        """Protect nested ignored workspace files, not just top-level .env."""
+        original_sha = self.git("rev-parse", "HEAD", cwd=self.target)
+        exclude = self.target / ".git" / "info" / "exclude"
+        with exclude.open("a", encoding="utf-8") as handle:
+            handle.write("\n.venv/\n")
+        local_file = self.target / ".venv" / "Scripts" / "local.cfg"
+        local_file.parent.mkdir(parents=True)
+        local_file.write_bytes(b"PRIVATE_LOCAL_CONFIG\n")
+        self.assertEqual(self.git("status", "--porcelain", cwd=self.target), "")
+
+        remote_file = self.seed / ".venv" / "Scripts" / "local.cfg"
+        remote_file.parent.mkdir(parents=True)
+        remote_file.write_text("REMOTE_CONFIG\n", encoding="utf-8")
+        self.git("add", ".venv/Scripts/local.cfg", cwd=self.seed)
+        self.git("commit", "-m", "start tracking venv config", cwd=self.seed)
+        self.git("push", cwd=self.seed)
+
+        process = self.update()
+        self.assertNotEqual(process.returncode, 0, process.stdout + process.stderr)
+        self.assertIn("ignored local path", process.stdout + process.stderr)
+        self.assertEqual(self.git("rev-parse", "HEAD", cwd=self.target), original_sha)
+        self.assertEqual(local_file.read_bytes(), b"PRIVATE_LOCAL_CONFIG\n")
+
+
 if __name__ == "__main__":
     unittest.main()

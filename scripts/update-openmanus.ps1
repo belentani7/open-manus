@@ -45,9 +45,48 @@ try {
         throw "Refusing to update from detached HEAD."
     }
 
+    # A clean Git status excludes ignored files. A normal fast-forward can still
+    # overwrite an ignored local .env or .venv file if upstream starts tracking it.
+    # Fetch first, then reject newly tracked paths that local rules ignore.
+    $upstream = (& git rev-parse --abbrev-ref --symbolic-full-name '@{upstream}')
+    Assert-GitSuccess "upstream"
+    if ([string]::IsNullOrWhiteSpace($upstream)) {
+        throw "Refusing to update a branch without an upstream."
+    }
+
+    $remote = (& git config --get "branch.$branch.remote")
+    Assert-GitSuccess "branch remote"
+    if ([string]::IsNullOrWhiteSpace($remote)) {
+        throw "Refusing to update a branch without a configured remote."
+    }
+
+    & git fetch --no-tags $remote
+    Assert-GitSuccess "fetch"
+    & git merge-base --is-ancestor HEAD $upstream
+    if ($LASTEXITCODE -ne 0) {
+        throw "Refusing to update: upstream is not a fast-forward of the local branch."
+    }
+
+    # Disable Git path quoting for Unicode names. Quoted paths (control
+    # characters, embedded newlines, etc.) are rejected rather than misread.
+    $incomingPaths = @(& git -c core.quotePath=false diff --name-only --no-renames --diff-filter=A HEAD $upstream)
+    Assert-GitSuccess "incoming path diff"
+    foreach ($relativePath in $incomingPaths) {
+        if ($relativePath.StartsWith('"')) {
+            throw "Refusing to update: unsupported quoted Git path in upstream."
+        }
+        & git check-ignore -q -- $relativePath
+        if ($LASTEXITCODE -eq 0) {
+            throw "Refusing to overwrite ignored local path: $relativePath"
+        }
+        if ($LASTEXITCODE -ne 1) {
+            throw "Refusing to update: could not check ignore status for $relativePath."
+        }
+    }
+
     Write-Host "Updating $repoPath on branch $branch (fast-forward only)..."
-    & git pull --ff-only
-    Assert-GitSuccess "pull --ff-only"
+    & git merge --ff-only $upstream
+    Assert-GitSuccess "merge --ff-only"
 
     if ($SkipDependencies) {
         Write-Host "Repository updated. Dependency installation skipped by request."
