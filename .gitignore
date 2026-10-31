@@ -14,8 +14,11 @@ desktop.ini
 .env.*
 !.env.example
 *.pem
+config/config.toml
 
-# Node
+# Local runtime and generated workspaces
+OpenManus/
+workspace/
 node_modules/
 dist/
 build/

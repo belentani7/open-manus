@@ -1,41 +1,42 @@
 # Workflows
 
-## 1. First local setup
+## 1. Create a project-independent workspace
 
-```powershell
+~~~powershell
+.\scripts\New-Project.ps1 -ProjectName "NewIdea" -Template general -Workspace "$HOME\Projects" -WhatIf
+.\scripts\New-Project.ps1 -ProjectName "NewIdea" -Template general -Workspace "$HOME\Projects"
+~~~
+
+Choose web, python or node when the product brief justifies that stack. The factory is separate from the OpenManus clone and does not install or start it.
+
+## 2. First local-agent setup
+
+~~~powershell
 .\scripts\check-system.ps1
 .\scripts\setup-openmanus.ps1
 ollama pull qwen2.5:7b
 .\scripts\start-cli.ps1
-```
+~~~
 
-## 2. Web mode
+The first setup prepares a new virtual environment. Existing config is preserved; dependency reinstalls require InstallDependencies.
 
-```powershell
+## 3. Web and MCP modes
+
+~~~powershell
 .\scripts\start-web.ps1
-```
-
-Use this when the operator prefers browser interaction instead of terminal chat.
-
-## 3. MCP mode
-
-```powershell
 .\scripts\start-mcp.ps1
-```
+~~~
 
-Use this when integrating OpenManus capabilities with tool-driven environments.
+Review MCP permissions before connecting it to another agent.
 
 ## 4. Upstream refresh
 
-```powershell
-.\scripts\update-openmanus.ps1
-```
+Use scripts/update-openmanus.ps1 -WhatIf to preview. The updater refuses dirty worktrees and only fast-forwards. Install dependencies explicitly after reviewing the upstream manifest.
 
-Use this after the initial install to refresh the embedded upstream clone.
+## 5. Tests and safe handoff
 
-## 5. Safe handoff
+~~~powershell
+python -m unittest discover -s tests -v
+~~~
 
-- keep `.venv` local
-- keep personal secrets out of repo files
-- copy `config/config.template.toml` into upstream config when needed
-- document chosen model before handoff
+Keep .venv and local config out of commits. Record the selected model and upstream commit for handoff.

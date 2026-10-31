@@ -1,107 +1,70 @@
-# Local Agent
+# Local Agent Workbench
 
-OpenManus + Ollama en Windows 11, sin Docker y sin claves API.
+Entorno de trabajo local para OpenManus con Ollama en Windows 11, más un generador reutilizable de proyectos independientes.
 
-Repositorio orientado a ejecucion local:
+## Qué incluye
 
-- CLI
-- Web UI
-- MCP
-- Ollama local
-- flujo Windows 11
+- scripts de preparación y lanzamiento de OpenManus en CLI, web y MCP
+- comprobación de Python, Git y disponibilidad real del servicio Ollama
+- generador local de proyectos generales, web, Python o Node
+- reglas de Cursor y AGENTS.md incluidos en cada proyecto nuevo
+- pruebas automatizadas de PowerShell y de no sobrescritura
 
-## Que incluye
+## Crear cualquier proyecto
 
-- guia rapida de arranque
-- scripts PowerShell para preparar y lanzar OpenManus
-- troubleshooting base
-- material fuente en PDF y notas de chat
+La fábrica no está acoplada a Bellacore ni a ningún producto. Previsualiza primero:
 
-## Requisitos
+~~~powershell
+.\scripts\New-Project.ps1 -ProjectName "TetrisAI" -Template web -Workspace "$HOME\Projects" -WhatIf
+~~~
 
-- Windows 11
-- Python 3.11 recomendado
-- Git
-- Ollama
-- 8 GB RAM minimo
-- 16 GB RAM recomendado para `qwen2.5:7b`
+Crea el proyecto:
 
-## Modelos recomendados
+~~~powershell
+.\scripts\New-Project.ps1 -ProjectName "TetrisAI" -Template web -Workspace "$HOME\Projects"
+~~~
 
-- `qwen2.5:3b` para equipos modestos
-- `qwen2.5:7b` para mejor calidad general
+Plantillas disponibles: general, web, python y node. El destino debe estar ausente o vacío. La fábrica no instala dependencias, no hace llamadas de red, no abre puertos y no inicia la aplicación. Añade -InitializeGit para crear el repositorio local. Las escrituras admiten -WhatIf.
 
-## Estructura
+La definición, los límites, las pruebas y las reglas generadas se describen en docs/universal-project-factory.md.
 
-```text
-.
-|-- README.md
-|-- .gitignore
-|-- docs/
-|   |-- install-windows.md
-|   |-- quickstart.md
-|   `-- troubleshooting.md
-|-- scripts/
-|   |-- check-system.ps1
-|   |-- setup-openmanus.ps1
-|   |-- start-cli.ps1
-|   |-- start-web.ps1
-|   `-- start-mcp.ps1
-|-- Guia_OpenManus_Windows11.pdf
-|-- Guia_OpenManus_Windows11_SinDocker.pdf
-|-- Guia_OpenManus_Windows11_SinDocker_final.pdf
-`-- chat-OpenManus Ollama Windows Setup.txt
-```
+## Preparar OpenManus
 
-## Arranque rapido
+Requisitos para el agente local: Windows 11, Python 3.11+, Git y Ollama instalado con el servicio local iniciado. La fábrica de proyectos solo requiere PowerShell.
 
-1. Instala Python 3.11, Git y Ollama.
-2. En Ollama descarga un modelo:
-
-```powershell
+~~~powershell
+.\scripts\check-system.ps1
+.\scripts\setup-openmanus.ps1
 ollama pull qwen2.5:7b
-```
+.\scripts\start-cli.ps1
+~~~
 
-3. Clona OpenManus:
+La primera preparación crea el entorno virtual e instala el archivo requirements del upstream. Repetir el comando conserva el entorno y la configuración existentes; usa -InstallDependencies para reinstalar dependencias y -UpgradePip para actualizar pip. El script no sobrescribe config/config.toml si ya existe.
 
-```powershell
-git clone https://github.com/mannaandpoem/OpenManus.git
-```
+Usa los lanzadores cuando necesites otra interfaz:
 
-4. Ejecuta la preparacion:
+~~~powershell
+.\scripts\start-web.ps1
+.\scripts\start-mcp.ps1
+~~~
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\setup-openmanus.ps1
-```
+Para actualizar el checkout local, primero confirma que no tenga cambios sin guardar. update-openmanus.ps1 solo acepta avance rápido; no usa reset ni reescribe historial. Reinstalar dependencias y actualizar pip requieren opciones explícitas.
 
-5. Lanza el modo que necesites:
+## Verificación
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\start-cli.ps1
-powershell -ExecutionPolicy Bypass -File .\scripts\start-web.ps1
-powershell -ExecutionPolicy Bypass -File .\scripts\start-mcp.ps1
-```
+En Windows con Python 3.12 y PowerShell:
 
-## Configuracion esperada
+~~~powershell
+python -m unittest discover -s tests -v
+~~~
 
-OpenManus debe apuntar a Ollama local:
+La CI de GitHub ejecuta estas pruebas en cada push a main y cada Pull Request.
 
-```toml
-base_url = "http://localhost:11434/v1"
-model = "qwen2.5:7b"
-api_key = "ollama"
-```
+## Seguridad y límites
 
-## Documentacion
+- La fábrica crea archivos únicamente en el Workspace elegido y rechaza destinos no vacíos.
+- OpenManus y Ollama se ejecutan localmente; los modelos y dependencias se descargan solo durante una instalación solicitada.
+- Los archivos de configuración local, claves y entornos virtuales no se versionan.
+- Este repositorio no afirma que una instalación, despliegue o servicio esté activo hasta comprobarlo.
 
-- [Instalacion Windows](docs/install-windows.md)
-- [Quickstart](docs/quickstart.md)
-- [Troubleshooting](docs/troubleshooting.md)
-
-## Material fuente
-
-Este repo conserva los PDFs y el transcript usados para construir la version publicada.
-
-## Estado
-
-Documentacion-first repo listo para publicar y extender.
+Consulta docs/security.md, docs/architecture.md, docs/workflows.md, docs/official-tooling-guidance-2026-10-31.md y docs/qwen-export-review.md.

@@ -1,0 +1,7 @@
+---
+description: Local-first rules for this repository and its project generator.
+globs: "**/*"
+alwaysApply: true
+---
+
+Keep the OpenManus runtime separate from the universal project factory. The factory creates a fresh local scaffold only; do not add product-specific names, install dependencies, open listeners, launch browsers or call external APIs. Preserve non-empty destinations. Use explicit WhatIf/ShouldProcess on writes. Keep local config and secrets untracked. Preserve changes in existing workspaces. For generated web projects use semantic HTML, keyboard-visible focus, readable contrast and reduced motion. Verify behavior using the repository tests and report exact CI/deployment evidence.

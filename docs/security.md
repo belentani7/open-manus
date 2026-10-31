@@ -2,24 +2,22 @@
 
 ## Local-first baseline
 
-- use Ollama locally whenever possible
-- avoid storing real API secrets in tracked files
-- keep `.env`, local configs, caches, and logs untracked
+- Use Ollama locally for local-agent workflows.
+- Never store real API secrets in tracked files, browser assets, logs, or generated projects.
+- Keep .env, config/config.toml, local configs, caches, logs, virtual environments, and the cloned OpenManus checkout untracked.
+- Review the upstream source and requirements before installing them.
+- New project scaffolding does not download code, install packages, expose ports, launch processes, or call external services.
 
-## Repository hygiene
+## Safer operations
 
-- review config before pushing
-- do not commit private prompts with credentials
-- do not commit upstream virtual environments
-
-## Suggested practice
-
-1. use `api_key = "ollama"` only for local Ollama
-2. if switching to a hosted provider, move the real key to environment variables
-3. keep the upstream `config.toml` personal and local when it contains secrets
+- Project writes are behind PowerShell ShouldProcess and support WhatIf.
+- The generator refuses non-empty destinations and checks that the project path remains under Workspace.
+- Setup only accepts a checkout whose origin is mannaandpoem/OpenManus.
+- Existing OpenManus config is preserved. Dependency installation and pip upgrades are explicit when the virtual environment already exists.
+- Updates refuse a dirty checkout and use git merge --ff-only rather than reset or forced checkout.
 
 ## Risk areas
 
-- accidental commit of edited config
-- mixing local and hosted provider settings
-- publishing logs with sensitive prompts or file paths
+- Initial setup downloads and installs upstream code and dependencies; inspect the upstream repository and requirements first.
+- MCP mode can expose local tools to another client. Review its configuration and tool permissions before connecting it.
+- Local-only does not mean risk-free: imported prompts, project files and model outputs can be untrusted.

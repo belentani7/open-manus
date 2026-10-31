@@ -1,23 +1,39 @@
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = 'Stop'
 
-function Test-Command {
+function Get-Tool {
     param([string]$Name)
-    $cmd = Get-Command $Name -ErrorAction SilentlyContinue
-    return $null -ne $cmd
+    Get-Command $Name -ErrorAction SilentlyContinue
 }
 
-Write-Host "Checking Windows local-agent prerequisites..."
+Write-Host 'Checking local-agent prerequisites...'
+$python = Get-Tool 'python'
+$git = Get-Tool 'git'
+$ollama = Get-Tool 'ollama'
+$pythonOk = $false
+$gitOk = $null -ne $git
+$ollamaOk = $false
 
-$pythonOk = Test-Command "python"
-$gitOk = Test-Command "git"
-$ollamaOk = Test-Command "ollama"
+if ($python) {
+    $versionText = (& $python.Source -c 'import sys; print(".".join(map(str, sys.version_info[:3])))' 2>$null | Out-String).Trim()
+    if ($LASTEXITCODE -eq 0 -and $versionText) {
+        $version = [version]$versionText
+        $pythonOk = $version -ge [version]'3.11'
+        Write-Host "Python : $versionText $(if ($pythonOk) { '(OK)' } else { '(3.11+ required)' })"
+    }
+}
+else {
+    Write-Host 'Python : MISSING'
+}
 
-Write-Host ("Python : " + $(if ($pythonOk) { "OK" } else { "MISSING" }))
-Write-Host ("Git    : " + $(if ($gitOk) { "OK" } else { "MISSING" }))
-Write-Host ("Ollama : " + $(if ($ollamaOk) { "OK" } else { "MISSING" }))
+Write-Host ("Git    : " + $(if ($gitOk) { 'OK' } else { 'MISSING' }))
+if ($ollama) {
+    & $ollama.Source list 2>$null | Out-Null
+    $ollamaOk = $LASTEXITCODE -eq 0
+}
+Write-Host ("Ollama : " + $(if ($ollamaOk) { 'OK (local service reachable)' } else { 'MISSING or local service unavailable' }))
 
 if (-not ($pythonOk -and $gitOk -and $ollamaOk)) {
-    Write-Error "Missing required tools. Install Python 3.11, Git and Ollama first."
+    throw 'Install or start the missing prerequisite, then run this check again.'
 }
 
-Write-Host "All required tools are available."
+Write-Host 'All prerequisites are available.'
