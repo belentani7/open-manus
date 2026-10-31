@@ -1,5 +1,6 @@
 """End-to-end checks for the local, no-network project generator."""
 
+import json
 import shutil
 import subprocess
 import sys
@@ -52,8 +53,13 @@ class TestNewProjectScaffold(unittest.TestCase):
         self.assertTrue((target / ".cursor" / "rules" / "project.mdc").is_file())
         self.assertTrue((target / "docs" / "project-brief.md").is_file())
         self.assertEqual(
-            (target / "project.json").read_text(encoding="utf-8"),
-            '{\n  "name": "ResearchDesk",\n  "slug": "researchdesk",\n  "template": "general",\n  "generator": "local-agent/scripts/New-Project.ps1"\n}\n',
+            json.loads((target / "project.json").read_text(encoding="utf-8")),
+            {
+                "name": "ResearchDesk",
+                "slug": "researchdesk",
+                "template": "general",
+                "generator": "local-agent/scripts/New-Project.ps1",
+            },
         )
 
     def test_web_template_has_keyboard_and_reduced_motion_basics(self):
