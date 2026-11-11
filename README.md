@@ -68,3 +68,7 @@ La CI de GitHub ejecuta estas pruebas en cada push a main y cada Pull Request.
 - Este repositorio no afirma que una instalación, despliegue o servicio esté activo hasta comprobarlo.
 
 Consulta docs/security.md, docs/architecture.md, docs/workflows.md, docs/official-tooling-guidance-2026-10-31.md y docs/qwen-export-review.md.
+
+
+## Producto
+Véase `plataforma/OFERTA.md`, `plataforma/precios.json`, `plataforma/ONEPAGER.md`.
