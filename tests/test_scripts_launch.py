@@ -65,6 +65,10 @@ def run_powershell(args, env=None):
     )
 
 
+@unittest.skipUnless(
+    shutil.which("powershell"),
+    "PowerShell is required (provided by the Windows CI runner)",
+)
 class TestDocumentedLaunchers(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -118,6 +122,10 @@ class TestDocumentedLaunchers(unittest.TestCase):
                 )
 
 
+@unittest.skipUnless(
+    shutil.which("powershell"),
+    "PowerShell is required (provided by the Windows CI runner)",
+)
 class TestScriptParsing(unittest.TestCase):
     """README.md linea 74 declara setup-openmanus.ps1 como paso de preparacion.
 

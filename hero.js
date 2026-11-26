@@ -96,12 +96,14 @@
   function createProgram(gl, vsSource, fsSource) {
     var vertexShader = createShader(gl, gl.VERTEX_SHADER, vsSource);
     var fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
+    if (!vertexShader || !fragmentShader) return null;
     var program = gl.createProgram();
     gl.attachShader(program, vertexShader);
     gl.attachShader(program, fragmentShader);
     gl.linkProgram(program);
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
       console.error(gl.getProgramInfoLog(program));
+      gl.deleteProgram(program);
       return null;
     }
     return program;
@@ -130,6 +132,10 @@
     }
 
     var program = createProgram(gl, vertexShaderSource, fragmentShaderSource);
+    if (!program) {
+      canvas.style.background = 'linear-gradient(135deg, ' + colorA + ', ' + colorB + ')';
+      return;
+    }
     gl.useProgram(program);
 
     var positionBuffer = gl.createBuffer();

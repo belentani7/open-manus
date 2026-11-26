@@ -1,0 +1,11 @@
+{
+  "name": "open-manus",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local Agent Workbench for OpenManus with Ollama on Windows 11 and reusable project factory",
+  "scripts": {
+    "build": "node -e \"const fs=require('fs'),p=require('path');fs.mkdirSync('site',{recursive:true});for(const f of['index.html','404.html','docs.html','accesibilidad.html','privacidad.html','hero.css','hero.js']){if(fs.existsSync(f))fs.copyFileSync(f,p.join('site',f));}console.log('Built site/ from root static assets');\"",
+    "lint": "node --check hero.js && python3 -m py_compile tests/test_basic.py tests/test_new_project.py tests/test_scripts_launch.py",
+    "test": "python3 -m unittest discover -s tests -v"
+  }
+}
